@@ -39,7 +39,7 @@ public class CityResource {
 
     private static final Logger LOG = Logger.getLogger(CityResource.class);
 
-    private final ObjectMapper objectMapper = new YAMLMapper();
+   // private final ObjectMapper objectMapper = new YAMLMapper();
 
     @Inject
     private CityListWrapperSerializer serializer;
@@ -80,17 +80,15 @@ public class CityResource {
     @Path("/cities")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes("application/x-yaml")
-    public Object handleConsumedYamlPostRequest(@RequestBody final String yamlPayload) throws IOException {
+    public Object handleConsumedYamlPostRequest(CityListDTO cityListDTO) {
 
-        LOG.info("Received YAML payload: " + yamlPayload);
-
-        try {
-            return objectMapper.readValue(yamlPayload, Object.class);
-        } catch (Exception e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("Error parsing YAML: " + e.getMessage())
-                    .build();
-        }
+      if (cityListDTO == null) {
+        return Response.status(Response.Status.BAD_REQUEST)
+          .entity("Invalid YAML payload in CityListDTO received")
+          .build().toString();
+      } else {
+        return Response.ok().entity(cityListDTO).build();
+      }
     }
 
     @GET

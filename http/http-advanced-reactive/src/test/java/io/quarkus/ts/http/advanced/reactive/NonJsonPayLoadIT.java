@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.quarkus.test.logging.Log;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.xml.bind.JAXBException;
 
@@ -34,6 +36,7 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.MultiPartSpecification;
+import org.yaml.snakeyaml.Yaml;
 
 @QuarkusScenario
 public class NonJsonPayLoadIT {
@@ -102,14 +105,12 @@ public class NonJsonPayLoadIT {
     @Test
     public void testPostYamlPayloadRequest() throws IOException {
 
-        String yamlString = readYamlFile("src/test/resources/payload.yaml");
+        CityListDTO CityListDTO = readYamlFile("src/test/resources/payload.yaml");
 
         Response response = RestAssured
                 .given()
-                .config(RestAssured.config()
-                        .encoderConfig(encoderConfig().encodeContentTypeAs("application/x-yaml", ContentType.TEXT)))
                 .contentType("application/x-yaml")
-                .body(yamlString)
+                .body(CityListDTO)
                 .when()
                 .post("/city/cities")
                 .then()
@@ -161,9 +162,25 @@ public class NonJsonPayLoadIT {
                 .build();
     }
 
-    private String readYamlFile(String filePath) throws IOException {
+    /*private String readYamlFile(String filePath) throws IOException {
         Path path = Paths.get(filePath);
         return new String(Files.readAllBytes(path));
+    }*/
+    private CityListDTO readYamlFile(String yamlFilePath) throws IOException {
+      java.nio.file.Path path = Paths.get(yamlFilePath);
+      if (!Files.exists(path)) {
+        throw new IOException("YAML file not found: " + yamlFilePath);
+      }
+
+      try {
+        byte[] yamlData = Files.readAllBytes(path);
+        Yaml yamlParser = new Yaml();
+        List<City> cities = yamlParser.loadAs(new ByteArrayInputStream(yamlData), List.class);
+        return new CityListDTO(cities);
+      } catch (IOException e) {
+        Log.error("Error reading YAML file: {}", yamlFilePath, e);
+        return null;
+      }
     }
 
 }
