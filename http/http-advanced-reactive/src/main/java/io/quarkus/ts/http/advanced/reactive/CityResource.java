@@ -46,18 +46,18 @@ public class CityResource {
 
     private List<City> cityList = new ArrayList<>();
 
-    @GET
-    @Produces(value = MediaType.APPLICATION_XML)
-    public CityListWrapper getCities() {
-        LOG.info("Received request to getCities");
+  @GET
+  @Produces(value = MediaType.APPLICATION_XML)
+  public CityListDTO getCities() {
+    LOG.info("Received request to getCities");
 
-        if (cityList.isEmpty()) {
-            cityList.add(new City("San Bernardino", "EEUU"));
-            cityList.add(new City("Brno", "Czech Republic"));
-            cityList.add(new City("Zaragoza", "Spain"));
-        }
-        return new CityListWrapper(cityList);
+    if (cityList.isEmpty()) {
+      cityList.add(new City("San Bernardino", "EEUU"));
+      cityList.add(new City("Brno", "Czech Republic"));
+      cityList.add(new City("Zaragoza", "Spain"));
     }
+    return new CityListDTO(cityList);
+  }
 
     @POST
     @Consumes(MediaType.APPLICATION_XML)

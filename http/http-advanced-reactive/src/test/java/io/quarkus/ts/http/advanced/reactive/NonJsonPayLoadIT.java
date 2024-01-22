@@ -54,16 +54,16 @@ public class NonJsonPayLoadIT {
     private final static String EXPECTED_RESPONSE_BODY_YAML = """
             [{description=Send a request with a YAML payload to the endpoint, including cities data, steps=[{action=POST, endpoint=/media-type/yaml, requestHeaders={Content-Type=application/yaml}, requestBody={cities=[{name=Tokio, country=Japan}]}}], expectedResponse={status=200, headers={Content-Type=application/json}, body={cities=[{name=Tokio, country=Japan}]}}}]""";
 
-    @Test
-    public void testExpectedXmlResponse() {
-        app.given()
-                .get("/city").then()
-                .statusCode(HttpStatus.SC_OK)
-                .contentType(MediaType.APPLICATION_XML)
-                .body("cityListWrapper.cities[0].name", equalTo("San Bernardino"))
-                .body("cityListWrapper.cities[0].country", equalTo("EEUU"));
+  @Test
+  public void testExpectedXmlResponse() {
+    app.given()
+      .get("/city").then()
+      .statusCode(HttpStatus.SC_OK)
+      .contentType(MediaType.APPLICATION_XML)
+      .body("cityListDTO.city[0].name", equalTo("San Bernardino"))
+      .body("cityListDTO.city[0].country", equalTo("EEUU"));
 
-    }
+  }
 
     @Test
     public void testXMLPayloadPostRequest() throws JAXBException {
