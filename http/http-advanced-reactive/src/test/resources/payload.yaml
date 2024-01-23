@@ -1,18 +1,5 @@
-- description: "Send a request with a YAML payload to the endpoint, including cities data"
-  steps:
-    - action: "POST"
-      endpoint: "/media-type/yaml"
-      requestHeaders:
-        Content-Type: "application/yaml"
-      requestBody:
-        cities:
-          - name: Tokio
-            country: Japan
-  expectedResponse:
-    status: 200
-    headers:
-      Content-Type: "application/json"
-    body:
-      cities:
-        - name: Tokio
-          country: Japan
+cityList:
+  - name: Tokio
+    country: Japan
+  - name: Paris
+    country: France

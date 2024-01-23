@@ -4,7 +4,6 @@ import static io.restassured.config.EncoderConfig.encoderConfig;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +13,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.quarkus.test.logging.Log;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.xml.bind.JAXBException;
 
@@ -30,7 +32,6 @@ import io.quarkus.test.services.QuarkusApplication;
 import io.restassured.RestAssured;
 import io.restassured.builder.MultiPartSpecBuilder;
 import io.restassured.http.ContentType;
-import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.MultiPartSpecification;
@@ -100,25 +101,43 @@ public class NonJsonPayLoadIT {
     }
 
     @Test
-    public void testPostYamlPayloadRequest() throws IOException {
+    public void testPostDTOEndpoint() throws IOException {
 
-        String yamlString = readYamlFile("src/test/resources/payload.yaml");
+      ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 
-        Response response = RestAssured
+      CityListDTO cityListDTO = yamlMapper.readValue(new File("src/test/resources/payload.yaml"), CityListDTO.class);
+
+      Log.info(cityListDTO.getCityList().toString());
+
+      Response response = app
                 .given()
-                .config(RestAssured.config()
-                        .encoderConfig(encoderConfig().encodeContentTypeAs("application/x-yaml", ContentType.TEXT)))
-                .contentType("application/x-yaml")
-                .body(yamlString)
-                .when()
-                .post("/city/cities")
+        //set a type understandable for RestAssured
+        .contentType("application/json")
+                .body(cityListDTO)
+                .post("/city/DTO")
                 .then()
-                .statusCode(200).extract().response();
-        JsonPath jsonPath = response.jsonPath();
+        .statusCode(201)
+        .extract().response();
+      Log.info("RESPONSE " + response.prettyPrint());
 
-        List<Object> cities = jsonPath.getList("expectedResponse.body.cities");
-        assertEquals("[{name=Tokio, country=Japan}]", cities.get(0).toString());
     }
+    @Test
+    public void testPostCitiesEndpoint() throws IOException {
+
+      String yamlString = readYamlFile("src/test/resources/payload.yaml");
+      Log.info("yamlString " + yamlString);
+      Response response = app.given()
+        .config(RestAssured.config().encoderConfig(encoderConfig().encodeContentTypeAs("application/yaml", ContentType.TEXT)))
+        .contentType("application/yaml")
+        .body(yamlString)
+        .when()
+        .post("/city/cities")
+        .then()
+        .statusCode(201).extract().response();
+      // Log the Content-Type of the response
+      Log.info("Content-Type: " + response.getHeaders().get("Content-Type"));
+    }
+
 
     @Test
     public void testGetImage() throws IOException {

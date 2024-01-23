@@ -10,9 +10,10 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 public class CityListDTO {
 
     @XmlElement(name = "city")
-    private List<City> cities = new ArrayList<>();
+    private List<City> cities;
 
     public CityListDTO() {
+      this.cities = new ArrayList<>();
     }
 
     public CityListDTO(List<City> cities) {
@@ -29,6 +30,14 @@ public class CityListDTO {
 
     @Override
     public String toString() {
-        return cities.toString();
+      StringBuilder sb = new StringBuilder("CityListDTO{cities=[");
+      for (City city : cities) {
+        sb.append(city.toString()).append(", ");
+      }
+      if (!cities.isEmpty()) {
+        sb.setLength(sb.length() - 2);
+      }
+      sb.append("]}");
+      return sb.toString();
     }
 }

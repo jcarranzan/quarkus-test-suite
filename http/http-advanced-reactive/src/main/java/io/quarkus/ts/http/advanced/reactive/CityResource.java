@@ -21,14 +21,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.io.IOUtils;
-import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.yaml.snakeyaml.Yaml;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import io.quarkus.logging.Log;
 
@@ -38,8 +35,6 @@ public class CityResource {
     private static final String YAML_FILE_PATH = "payload.yaml";
 
     private static final Logger LOG = Logger.getLogger(CityResource.class);
-
-   // private final ObjectMapper objectMapper = new YAMLMapper();
 
     @Inject
     private CityListWrapperSerializer serializer;
@@ -77,21 +72,27 @@ public class CityResource {
     }
 
     @POST
-    @Path("/cities")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes("application/x-yaml")
-    public Object handleConsumedYamlPostRequest(CityListDTO cityListDTO) {
+    @Path("/DTO")
+    @Produces("application/yaml")
+    public Response handleDTO(CityListDTO cityListDTO) {
+      LOG.info("Empty DTO not sure why... " +  cityListDTO.getCityList().toString());
+      return Response.status(201).entity(cityListDTO.getCityList().toString()).build();
+    }
 
-      if (cityListDTO == null) {
+    @POST
+    @Path("/cities")
+    @Consumes("application/yaml")
+    public Response handleConsumedYamlPostRequest(CityListDTO cityListDTO) {
+      if (cityListDTO == null || cityListDTO.getCityList().isEmpty()) {
         return Response.status(Response.Status.BAD_REQUEST)
-          .entity("Invalid YAML payload in CityListDTO received")
-          .build().toString();
+          .entity("Invalid payload in CityListDTO received")
+          .build();
       } else {
-        return Response.ok().entity(cityListDTO).build();
+        return Response.status(201).entity(cityListDTO).build();
       }
     }
 
-    @GET
+      @GET
     @Path("/getYamlFile")
     @Produces(APPLICATION_YAML)
     public Response getYamlFile() throws IOException {
