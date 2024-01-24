@@ -26,7 +26,6 @@ import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.yaml.snakeyaml.Yaml;
 
-
 import io.quarkus.logging.Log;
 
 @Path("/city")
@@ -73,26 +72,27 @@ public class CityResource {
 
     @POST
     @Path("/DTO")
-    @Produces("application/yaml")
+    @Consumes("*/*")
+    @Produces("*/*")
     public Response handleDTO(CityListDTO cityListDTO) {
-      LOG.info("Empty DTO not sure why... " +  cityListDTO.getCityList().toString());
-      return Response.status(201).entity(cityListDTO.getCityList().toString()).build();
+        LOG.info("Empty DTO not sure why... " + cityListDTO.getCityList().toString());
+        return Response.status(201).entity(cityListDTO).build();
     }
 
     @POST
     @Path("/cities")
     @Consumes("application/yaml")
     public Response handleConsumedYamlPostRequest(CityListDTO cityListDTO) {
-      if (cityListDTO == null || cityListDTO.getCityList().isEmpty()) {
-        return Response.status(Response.Status.BAD_REQUEST)
-          .entity("Invalid payload in CityListDTO received")
-          .build();
-      } else {
-        return Response.status(201).entity(cityListDTO).build();
-      }
+        if (cityListDTO == null || cityListDTO.getCityList().isEmpty()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Invalid payload in CityListDTO received")
+                    .build();
+        } else {
+            return Response.status(201).entity(cityListDTO).build();
+        }
     }
 
-      @GET
+    @GET
     @Path("/getYamlFile")
     @Produces(APPLICATION_YAML)
     public Response getYamlFile() throws IOException {
@@ -170,5 +170,4 @@ public class CityResource {
             return "application/octet-stream";
         }
     }
-
 }
