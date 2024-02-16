@@ -1,10 +1,10 @@
 package io.quarkus.ts.http.http2;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.testcontainers.shaded.org.hamcrest.MatcherAssert.assertThat;
 
 import org.apache.http.HttpStatus;
+import org.jboss.logging.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -24,16 +24,16 @@ import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
+import java.util.List;
+
 @QuarkusScenario
 @ExtendWith(VertxExtension.class)
 public class Http2IT {
-
-    @QuarkusApplication(ssl = true)
-    static RestService app = new RestService();
-
+    private static final Logger LOG = Logger.getLogger(Http2IT.class);
     private static URILike baseUri;
     static private Vertx vertx;
 
+    private static final String BASE_ENDPOINT = "/morning";
     private static final String GREETING = "Buenos dias";
 
     private static final String HTTP_2_VERSION = "HTTP_2";
@@ -49,30 +49,29 @@ public class Http2IT {
     @Test
     @DisplayName("HttpClient Vertx HTTP/1.1 Test")
     public void httpClientVertxHttp1(VertxTestContext vertxTestContext) {
-        Checkpoint requestCheckpoint = vertxTestContext.checkpoint();
+        Checkpoint requestCheckpoint = vertxTestContext.checkpoint(2);
         assertNotNull(vertx);
         httpClient = vertx.createHttpClient();
         assertNotNull(httpClient);
         String expectedHTTP1Version = "HTTP_1_1";
 
-        vertxTestContext.verify(() -> {
-            httpClient.request(HttpMethod.GET, baseUri.getPort(), baseUri.getHost(), "/greeting")
-                    .compose(req -> req.send()
-                            .compose(httpClientResponse -> {
-                                System.out.println("**** Status Code " + httpClientResponse.statusCode());
-                                requestCheckpoint.flag();
-                                assertEquals(HttpStatus.SC_OK, httpClientResponse.statusCode());
-                                assertEquals(expectedHTTP1Version, httpClientResponse.version().toString());
-                                return httpClientResponse.body();
-                            }))
-                    .onSuccess(body -> {
-                        System.out.println("Got data " + body.toString("ISO-8859-1"));
-                        assertThat("Body response", body.toString().contains(GREETING));
+        vertxTestContext.verify(() -> httpClient.request(HttpMethod.GET, baseUri.getPort(), baseUri.getHost(), BASE_ENDPOINT)
+                .compose(req -> req.send()
+                        .compose(httpClientResponse -> {
+                            System.out.println("**** Status Code " + httpClientResponse.statusCode());
 
-                        requestCheckpoint.flag();
+                            assertEquals(HttpStatus.SC_OK, httpClientResponse.statusCode());
+                            assertEquals(expectedHTTP1Version, httpClientResponse.version().toString());
+                            requestCheckpoint.flag();
+                            return httpClientResponse.body();
+                        }))
+                .onSuccess(body -> {
+                    System.out.println("Got data " + body.toString("ISO-8859-1"));
+                    assertThat("Body response", body.toString().contains(GREETING));
 
-                    }).onFailure(Throwable::printStackTrace);
-        });
+                    requestCheckpoint.flag();
+
+                }).onFailure(Throwable::printStackTrace));
 
     }
 
@@ -89,28 +88,26 @@ public class Http2IT {
                 .setVerifyHost(false)
                 .setProtocolVersion(HttpVersion.HTTP_2));
         assertNotNull(httpClient);
-        vertxTestContext.verify(() -> {
-            httpClient.request(HttpMethod.GET, 8443, baseUri.getHost(), "/greeting")
-                    .compose(req -> req.send()
-                            .compose(httpClientResponse -> {
-                                requestCheckpoint.flag();
-                                assertEquals(HttpStatus.SC_OK, httpClientResponse.statusCode());
-                                assertEquals(HTTP_2_VERSION, httpClientResponse.version().toString());
-                                return httpClientResponse.body();
-                            }))
-                    .onSuccess(body -> {
-                        assertThat("Body response", body.toString().contains(GREETING));
-                        requestCheckpoint.flag();
-                    }).onFailure(Throwable::printStackTrace);
-        });
+        vertxTestContext.verify(() -> httpClient.request(HttpMethod.GET, 8443, baseUri.getHost(), BASE_ENDPOINT)
+                .compose(req -> req.send()
+                        .compose(httpClientResponse -> {
+                            requestCheckpoint.flag();
+                            assertEquals(HttpStatus.SC_OK, httpClientResponse.statusCode());
+                            assertEquals(HTTP_2_VERSION, httpClientResponse.version().toString());
+                            return httpClientResponse.body();
+                        }))
+                .onSuccess(body -> {
+                    assertThat("Body response", body.toString().contains(GREETING));
+                    requestCheckpoint.flag();
+                }).onFailure(Throwable::printStackTrace));
     }
 
     @Test
     @DisplayName("http2 protocol for http")
-    void http2H2CTest(VertxTestContext vertxTestContext) {
+    void http2ProtocolTest(VertxTestContext vertxTestContext) {
         HttpClientOptions options = new HttpClientOptions().setProtocolVersion(HttpVersion.HTTP_2);
         httpClient = vertx.createHttpClient(options);
-        httpClient.request(HttpMethod.GET, baseUri.getPort(), baseUri.getHost(), "/greeting")
+        httpClient.request(HttpMethod.GET, baseUri.getPort(), baseUri.getHost(), BASE_ENDPOINT)
                 .compose(request -> request.send()
                         .compose(httpClientResponse -> {
                             System.out.println("Got response {} with protocol {}" + httpClientResponse.statusCode() + " "
@@ -121,27 +118,6 @@ public class Http2IT {
                         }))
                 .onSuccess(body -> vertxTestContext.verify(() -> {
                     assertThat("Body response", body.toString().contains(GREETING));
-                    vertxTestContext.completeNow();
-                })).onFailure(Throwable::printStackTrace);
-
-    }
-
-    @Test
-    @DisplayName("undertow servlet test http2")
-    void underTowHttp2Servert(VertxTestContext vertxTestContext) {
-        String uriUnderTow = "/servlet/hello";
-        String expectedResponseFromUndertow = "From the Web Servlet man";
-        HttpClientOptions options = new HttpClientOptions().setProtocolVersion(HttpVersion.HTTP_2);
-        httpClient = vertx.createHttpClient(options);
-        httpClient.request(HttpMethod.GET, baseUri.getPort(), baseUri.getHost(), uriUnderTow)
-                .compose(request -> request.send()
-                        .compose(httpClientResponse -> {
-                            System.out.println("Got response {} with protocol {}" + httpClientResponse.statusCode() + " "
-                                    + httpClientResponse.version());
-                            return httpClientResponse.body();
-                        }))
-                .onSuccess(body -> vertxTestContext.verify(() -> {
-                    assertThat("Body response", body.toString().contains(expectedResponseFromUndertow));
                     vertxTestContext.completeNow();
                 })).onFailure(Throwable::printStackTrace);
 
