@@ -56,6 +56,7 @@
         <exclude.quarkus.cli.tests>**/QuarkusCli*IT.java</exclude.quarkus.cli.tests>
         <exclude.quarkus.devmode.tests>no</exclude.quarkus.devmode.tests>
         <!-- Docker images used by both surefire and failsafe plugin -->
+<<<<<<< HEAD
         <postgresql.latest.image>docker.io/library/postgres:16.1</postgresql.latest.image>
         <mysql.80.image>registry.access.redhat.com/rhscl/mysql-80-rhel7</mysql.80.image>
         <rhbk.image>registry.redhat.io/rhbk/keycloak-rhel9:22-8</rhbk.image>
@@ -64,6 +65,15 @@
         <reruns>2</reruns>
         <oc.reruns>1</oc.reruns>
         <flaky-run-reporter.version>0.1.2.Beta1</flaky-run-reporter.version>
+=======
+        <postgresql.latest.image>docker.io/postgres:16.1</postgresql.latest.image>
+        <mysql.80.image>registry.access.redhat.com/rhscl/mysql-80-rhel7</mysql.80.image>
+        <rhbk.image>registry.redhat.io/rhbk/keycloak-rhel9:22-8</rhbk.image>
+        <wiremock-jre8.version>2.35.1</wiremock-jre8.version>
+        <build-reporter-maven-extension.version>3.4.4</build-reporter-maven-extension.version>
+        <reruns>2</reruns>
+        <oc.reruns>1</oc.reruns>
+>>>>>>> c7c4c027 (Add Brotli4J compression related classes, files and dependencies)
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -279,6 +289,10 @@
                                 <redpanda.image>redpandadata/redpanda:v23.3.4</redpanda.image>
                                 <postgresql.latest.image>${postgresql.latest.image}</postgresql.latest.image>
                                 <elastic.7x.image>docker.io/library/elasticsearch:7.17.17</elastic.7x.image>
+<<<<<<< HEAD
+=======
+                                <mysql.57.image>docker.io/library/mysql:5.7.44</mysql.57.image>
+>>>>>>> c7c4c027 (Add Brotli4J compression related classes, files and dependencies)
                                 <mysql.upstream.80.image>docker.io/library/mysql:8.0</mysql.upstream.80.image>
                                 <mysql.80.image>${mysql.80.image}</mysql.80.image>
                                 <mariadb.10.image>docker.io/library/mariadb:10.11</mariadb.10.image>
@@ -293,7 +307,11 @@
                                 <consul.image>docker.io/bitnami/consul:1.17.2</consul.image>
                                 <infinispan.image>quay.io/infinispan/server:14.0</infinispan.image>
                                 <infinispan.expected-log>Infinispan Server.*started in</infinispan.expected-log>
+<<<<<<< HEAD
                                 <spring.cloud.server.image>quay.io/quarkusqeteam/spring-cloud-config-server:4.1</spring.cloud.server.image>
+=======
+                                <spring.cloud.server.image>quay.io/quarkusqeteam/spring-cloud-config-server:3.0</spring.cloud.server.image>
+>>>>>>> c7c4c027 (Add Brotli4J compression related classes, files and dependencies)
                                 <keycloak.image>quay.io/keycloak/keycloak:23.0.6</keycloak.image>
                                 <bouncycastle.bctls-fips.version>1.0.12.2</bouncycastle.bctls-fips.version>
                                 <rhbk.image>${rhbk.image}</rhbk.image>
