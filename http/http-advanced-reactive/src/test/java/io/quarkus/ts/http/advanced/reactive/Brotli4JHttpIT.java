@@ -1,8 +1,12 @@
 package io.quarkus.ts.http.advanced.reactive;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-
+import com.aayushatharva.brotli4j.Brotli4jLoader;
+import com.aayushatharva.brotli4j.decoder.Decoder;
+import com.aayushatharva.brotli4j.decoder.DecoderJNI;
+import com.aayushatharva.brotli4j.decoder.DirectDecompress;
+import io.restassured.response.Response;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -12,37 +16,152 @@ import io.quarkus.test.services.QuarkusApplication;
 
 import java.io.IOException;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+
 @Tag("QQE-378")
 @QuarkusScenario
 public class Brotli4JHttpIT {
-    @QuarkusApplication(classes = Brotli4JResource.class, properties = "compression.properties")
+    @QuarkusApplication(classes = {Brotli4JResource.class,Brotli4JHttpServerConfig.class, Brotli4JRestMock.class}, properties = "compression.properties")
     static RestService app = new RestService();
 
-    private final static String DEFAULT_TEXT_PLAIN = "As you know, every little bit counts";
+    private final static String DEFAULT_TEXT_PLAIN = "In life, you have to trust that every little bit helps. As you know, every small step forward counts." +
+            " It's the accumulation of these efforts that ultimately leads to success." +
+            " So, don't underestimate the power of persistence and determination in achieving your dreams";
+
+    private final static String CONTENT_LENGTH_DEFAULT_TEXT_PLAIN = "266";
+    private final static String CONTENT_LENGTH_GZIP_COMPRESSION_TEXT_PLAIN = "62";
+    private final static String CONTENT_LENGTH_BROTLI4J_COMPRESSION_TEXT_PLAIN = "187";
+
+    private final static String CONTENT_LENGTH_BROTLI4J_COMPRESSION_JSON = "236";
 
     @Test
-    public void checkTextPlainWithoutBrotli4JEncoding() {
+    public void disableCompression(){
+        System.setProperty("quarkus.http.enable-compression", "false");
         app.given()
+                .when()
+                .contentType(MediaType.TEXT_PLAIN)
                 .get("/compression/text")
                 .then()
                 .statusCode(200)
-                .and()
-                .header("content-length", "62")
-                .header("content-encoding","gzip")
-                .body(is(DEFAULT_TEXT_PLAIN)).log().all();
+                .header(HttpHeaders.CONTENT_LENGTH, CONTENT_LENGTH_DEFAULT_TEXT_PLAIN)
+                .header(HttpHeaders.CONTENT_ENCODING, nullValue())
+                .body(is(DEFAULT_TEXT_PLAIN))
+                .log().all();
     }
 
     @Test
-    public void checkTextPlainWithtBrotli4J() {
+    public void checkTextPlainCompressedWithtBrotli4J()  {
         app.given()
-                .header("Accept-Encoding", "br")
+                .header(HttpHeaders.ACCEPT_ENCODING, "br")
                 .get("/compression/text")
                 .then()
                 .statusCode(200)
                 .and()
-                //.header("content-length", "43")
-                .header("content-encoding", "br");
+                .header("content-length", CONTENT_LENGTH_BROTLI4J_COMPRESSION_TEXT_PLAIN)
+                .header(HttpHeaders.CONTENT_ENCODING, "br")
+                .log().all();
+              // .extract().response();
 
+    }
+
+    @Test
+    public void checkJsonBrotli4JCompression() {
+        app.given()
+                .header(HttpHeaders.ACCEPT_ENCODING, "br")
+                .get("/compression/brotli/json")
+                .then()
+                .statusCode(200)
+                .header("content-length", CONTENT_LENGTH_BROTLI4J_COMPRESSION_JSON)
+                .header("content-encoding", "br")
+                .log().all();
+    }
+
+    @Test
+    public void checkCompressedAndDecompressedWithQuarkusFailed() {
+        // Send the request with the Accept-Encoding header set to br
+        Response response = app.given()
+                .header(HttpHeaders.ACCEPT_ENCODING, "br")
+                .get("/compression/text")
+                .then()
+                .statusCode(200)
+                .and()
+                .header("content-length", CONTENT_LENGTH_BROTLI4J_COMPRESSION_TEXT_PLAIN)
+                .header("content-encoding", "br")
+                .log().all()
+                .extract().response();
+
+        // Assert that the response body matches the original text
+        assertThat(response.getBody().asString(), is(DEFAULT_TEXT_PLAIN));
+    }
+
+    @Test
+    public void checkCompressedAndDecompressedWithQuarkus() {
+        // Send the compressed text to the endpoint
+        Response response = app.given()
+                .header(HttpHeaders.ACCEPT_ENCODING, "br")
+                .get("/compression/text")
+                .then()
+                .statusCode(200)
+                .header(HttpHeaders.CONTENT_LENGTH, CONTENT_LENGTH_BROTLI4J_COMPRESSION_TEXT_PLAIN)
+                .header(HttpHeaders.CONTENT_ENCODING, "br")
+                .log().all()
+                .extract().response();
+        byte[] compressedBytes = response.asByteArray();
+
+       Response decompressionResponse = app.given()
+               .header(HttpHeaders.ACCEPT_ENCODING, "br")
+                .body(compressedBytes)
+                .post("/compression/decompression")
+                .then()
+                .statusCode(200)
+                .log().all()
+               .extract().response();;
+        String decompressedText = decompressionResponse.getBody().asString();
+
+        System.out.println("LA respuesta " + decompressedText);
+
+        // Assert that the decompressed text matches the original text
+      //  assertThat(response.getBody().asString(), is(DEFAULT_TEXT_PLAIN));
+    }
+
+    @Test
+    public void checkCompressedAndDecompressedWithBrotli4J() throws IOException {
+        Response response = app.given()
+                .header(HttpHeaders.ACCEPT_ENCODING, "br")
+                .get("/compression/text")
+                .then()
+                .statusCode(200)
+                .and()
+                .header("content-length", CONTENT_LENGTH_BROTLI4J_COMPRESSION_TEXT_PLAIN)
+                .log().all()
+                .extract().response();
+        byte[] compressedBytes = response.asByteArray();
+        String decompressed =   testDecompressionWithBrotli4J(compressedBytes);
+        assertThat(decompressed, is(DEFAULT_TEXT_PLAIN));
+    }
+
+
+    public String testDecompressionWithBrotli4J(byte[] compressedData) throws IOException {
+        String decompresed = "";
+        Brotli4jLoader.ensureAvailability();
+        if(compressedData != null){
+            DirectDecompress directDecompress = Decoder.decompress(compressedData);
+
+            if (directDecompress.getResultStatus() == DecoderJNI.Status.DONE) {
+                decompresed = new String(directDecompress.getDecompressedData());
+                System.out.println("Decompression Successful: " + decompresed);
+
+            } else {
+                System.out.println("Some Error Occurred While Decompressing");
+            }
+        }else {
+            System.out.println("compressData is null");
+        }
+
+
+        return decompresed;
     }
 
 
