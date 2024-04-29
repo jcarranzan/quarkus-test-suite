@@ -4,9 +4,11 @@ import com.aayushatharva.brotli4j.Brotli4jLoader;
 import com.aayushatharva.brotli4j.decoder.Decoder;
 import com.aayushatharva.brotli4j.decoder.DecoderJNI;
 import com.aayushatharva.brotli4j.decoder.DirectDecompress;
+import com.aayushatharva.brotli4j.encoder.Encoder;
 import io.restassured.response.Response;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -30,11 +32,17 @@ public class Brotli4JHttpIT {
             " It's the accumulation of these efforts that ultimately leads to success." +
             " So, don't underestimate the power of persistence and determination in achieving your dreams";
 
-    private final static String CONTENT_LENGTH_DEFAULT_TEXT_PLAIN = "266";
-    private final static String CONTENT_LENGTH_GZIP_COMPRESSION_TEXT_PLAIN = "62";
+    private final static String CONTENT_LENGTH_DEFAULT_TEXT_PLAIN = String.valueOf(DEFAULT_TEXT_PLAIN.length());
     private final static String CONTENT_LENGTH_BROTLI4J_COMPRESSION_TEXT_PLAIN = "187";
 
     private final static String CONTENT_LENGTH_BROTLI4J_COMPRESSION_JSON = "236";
+
+    private final static String BROTLI_ENCODING = "br";
+
+    @BeforeAll
+    public static void setUp(){
+        Brotli4jLoader.ensureAvailability();
+    }
 
     @Test
     public void disableCompression(){
@@ -52,29 +60,33 @@ public class Brotli4JHttpIT {
     }
 
     @Test
-    public void checkTextPlainCompressedWithtBrotli4J()  {
-        app.given()
-                .header(HttpHeaders.ACCEPT_ENCODING, "br")
+    public void checkTextPlainCompressedWithtBrotli4J() throws IOException {
+       // Brotli4jLoader.ensureAvailability();
+        byte[] textBytes = DEFAULT_TEXT_PLAIN.getBytes();
+        int brotliEncodedLength = calculateBrotliLength(textBytes);
+
+        Response response = app.given()
+                .header(HttpHeaders.ACCEPT_ENCODING, BROTLI_ENCODING)
                 .get("/compression/text")
                 .then()
                 .statusCode(200)
                 .and()
-                .header("content-length", CONTENT_LENGTH_BROTLI4J_COMPRESSION_TEXT_PLAIN)
+                .header("content-length", String.valueOf(brotliEncodedLength))
                 .header(HttpHeaders.CONTENT_ENCODING, "br")
-                .log().all();
-              // .extract().response();
+               .extract().response();
 
     }
+
 
     @Test
     public void checkJsonBrotli4JCompression() {
         app.given()
-                .header(HttpHeaders.ACCEPT_ENCODING, "br")
+                .header(HttpHeaders.ACCEPT_ENCODING, BROTLI_ENCODING)
                 .get("/compression/brotli/json")
                 .then()
                 .statusCode(200)
                 .header("content-length", CONTENT_LENGTH_BROTLI4J_COMPRESSION_JSON)
-                .header("content-encoding", "br")
+                .header("content-encoding", BROTLI_ENCODING)
                 .log().all();
     }
 
@@ -145,7 +157,7 @@ public class Brotli4JHttpIT {
 
     public String testDecompressionWithBrotli4J(byte[] compressedData) throws IOException {
         String decompresed = "";
-        Brotli4jLoader.ensureAvailability();
+
         if(compressedData != null){
             DirectDecompress directDecompress = Decoder.decompress(compressedData);
 
@@ -162,6 +174,13 @@ public class Brotli4JHttpIT {
 
 
         return decompresed;
+    }
+
+    private int calculateBrotliLength(byte[] data) throws IOException {
+        Encoder.Parameters parameters = new Encoder.Parameters();
+        byte[] compressedData = Encoder.compress(data, parameters);
+        System.out.println("LENGTH = " + compressedData.length);
+        return compressedData.length;
     }
 
 
