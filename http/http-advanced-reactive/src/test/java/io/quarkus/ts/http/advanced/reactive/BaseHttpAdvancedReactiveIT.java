@@ -23,6 +23,7 @@ import static jakarta.ws.rs.core.MediaType.TEXT_XML;
 import static org.apache.http.HttpHeaders.ACCEPT_ENCODING;
 import static org.apache.http.HttpHeaders.ACCEPT_LANGUAGE;
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
+import static org.apache.http.HttpStatus.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -35,7 +36,6 @@ import static org.htmlunit.util.MimeType.IMAGE_JPEG;
 import static org.htmlunit.util.MimeType.IMAGE_PNG;
 import static org.htmlunit.util.MimeType.TEXT_CSS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -180,6 +180,43 @@ public abstract class BaseHttpAdvancedReactiveIT {
                 .then().statusCode(SC_OK)
                 .body(FILE, is("File content"))
                 .body(TEXT, is(TEXT));
+    }
+
+    @Test
+    @DisplayName("RESTEasy Reactive Multipart Max Parameters test")
+    public void multiPartFormDataMaxParametersAllowed() {
+        final int MAX_PARAMETERS_ALLOWED = 999;
+        var request = getApp().given().multiPart(FILE, Paths.get("src", "test", "resources", "file.txt").toFile());
+
+        for (int i = 1; i < MAX_PARAMETERS_ALLOWED; i++) {
+            request = request.multiPart("param" + i, "value" + i);
+        }
+        // The MAX_PARAMETERS_ALLOWED is 1000, but now we add the parameter TEXT with formParam, so we will get the max limit 999 + 1
+        request.formParam(TEXT, TEXT);
+        request
+                .post(ROOT_PATH + MULTIPART_FORM_PATH)
+                .then()
+                .statusCode(SC_OK)
+                .body(FILE, is("File content"))
+                .body(TEXT, is(TEXT));
+
+    }
+
+    @DisplayName("RESTEasy Reactive Multipart Over the Max Parameters limit test")
+    @Test
+    public void exceedMultiPartParamsMaxLimit() {
+        var request = getApp().given().multiPart(FILE, Paths.get("src", "test", "resources", "file.txt").toFile());
+        // We test the over the max limit of parameters defined by Quarkus that is 1000.
+        final int OVER_MAX_PARAMETERS = 1000;
+        for (int i = 1; i < OVER_MAX_PARAMETERS; i++) {
+            request = request.multiPart("param" + i, "value" + i);
+        }
+        // we add the parameter TEXT with formParam so the total parameters will be 1000 + 1
+        request.formParam(TEXT, TEXT);
+        request
+                .post(ROOT_PATH + MULTIPART_FORM_PATH)
+                .then()
+                .statusCode(SC_INTERNAL_SERVER_ERROR);
     }
 
     @DisplayName("Jakarta REST RouterFilter and Vert.x Web Routes integration")
