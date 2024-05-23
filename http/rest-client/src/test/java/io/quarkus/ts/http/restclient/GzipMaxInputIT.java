@@ -19,7 +19,7 @@ import io.restassured.response.Response;
 @QuarkusScenario
 public class GzipMaxInputIT {
 
-     final byte[] gzip_bellow_max_input_1K = new byte[1000];
+    final byte[] gzip_bellow_max_input_1K = new byte[1000];
     final byte[] gzip_max_input_10M = new byte[10000000];
 
     @QuarkusApplication(classes = { GzipResource.class, GzipClientService.class }, properties = "gzip.properties")
@@ -53,7 +53,7 @@ public class GzipMaxInputIT {
 
     @Test
     void testGzipBelowMaxLimit() throws IOException {
-         byte[] compressedData = generateCompressedData(gzip_bellow_max_input_1K);
+        byte[] compressedData = generateCompressedData(gzip_bellow_max_input_1K);
 
         Response response = app.given()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)

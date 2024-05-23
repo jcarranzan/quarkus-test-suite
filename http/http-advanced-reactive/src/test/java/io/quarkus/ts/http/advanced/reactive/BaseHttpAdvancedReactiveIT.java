@@ -185,13 +185,15 @@ public abstract class BaseHttpAdvancedReactiveIT {
     @Test
     @DisplayName("RESTEasy Reactive Multipart Max Parameters test")
     public void multiPartFormDataMaxParametersAllowed() {
-        final int MAX_PARAMETERS_ALLOWED = 999;
+        // We are going to reach the MAX_PARAMETERS_ALLOWED in Quarkus Multipart that it's 1000
+        final int PARAMETERS_TO_ADD = 998;
+        // The file itself it's one parameter to add also
         var request = getApp().given().multiPart(FILE, Paths.get("src", "test", "resources", "file.txt").toFile());
 
-        for (int i = 1; i < MAX_PARAMETERS_ALLOWED; i++) {
+        for (int i = 0; i < PARAMETERS_TO_ADD; i++) {
             request = request.multiPart("param" + i, "value" + i);
         }
-        // The MAX_PARAMETERS_ALLOWED is 1000, but now we add the parameter TEXT with formParam, so we will get the max limit 999 + 1
+        //  now we add the parameter TEXT with formParam, so we will get the max limit 1000
         request.formParam(TEXT, TEXT);
         request
                 .post(ROOT_PATH + MULTIPART_FORM_PATH)
@@ -205,13 +207,14 @@ public abstract class BaseHttpAdvancedReactiveIT {
     @DisplayName("RESTEasy Reactive Multipart Over the Max Parameters limit test")
     @Test
     public void exceedMultiPartParamsMaxLimit() {
+        // The file itself it's one parameter to add also
         var request = getApp().given().multiPart(FILE, Paths.get("src", "test", "resources", "file.txt").toFile());
         // We test the over the max limit of parameters defined by Quarkus that is 1000.
-        final int OVER_MAX_PARAMETERS = 1000;
-        for (int i = 1; i < OVER_MAX_PARAMETERS; i++) {
+        final int PARAMETERS_TO_ADD = 999;
+        for (int i = 1; i < PARAMETERS_TO_ADD; i++) {
             request = request.multiPart("param" + i, "value" + i);
         }
-        // we add the parameter TEXT with formParam so the total parameters will be 1000 + 1
+        // we add the parameter TEXT with formParam so the total parameters will be 1000 + 1 so we are sending 1001
         request.formParam(TEXT, TEXT);
         request
                 .post(ROOT_PATH + MULTIPART_FORM_PATH)
