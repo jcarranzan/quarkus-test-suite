@@ -34,7 +34,7 @@ public abstract class BaseMicrometerOidcSecurityIT {
     static KeycloakService keycloak = new KeycloakService(DEFAULT_REALM_FILE, DEFAULT_REALM, DEFAULT_REALM_BASE_PATH)
             .withProperty("JAVA_OPTS", "-Dcom.redhat.fips=false");
 
-    private AuthzClient authzClient;
+    public AuthzClient authzClient;
 
     protected abstract RestService getApp();
 
