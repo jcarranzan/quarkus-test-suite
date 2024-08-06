@@ -95,7 +95,9 @@ public class EncryptPropertyTest {
     private static String encode(String key) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString((key.getBytes(StandardCharsets.UTF_8)));
     }
-    static String sec1 =  escapeArgumentForWindows("!@#$^%^&*()__++_)--=");
+
+    static String sec1 = escapeArgumentForWindows("!@#$^%^&*()__++_)--=");
+
     public enum EncryptProperties {
 
         SECRET_1("secret-1", sec1, null),
@@ -113,7 +115,12 @@ public class EncryptPropertyTest {
             this.encryptionKey = encryptionKey;
         }
     }
-    public static String escapeArgumentForWindows(String argument) {
-        return "\"" + argument.replace("\"", "\\\"") + "\"";
+
+    public static String escapeArgumentForWindows(String secret) {
+        return "\"" + secret
+                .replace("\"", "\\\"")
+                .replace("%", "%%")
+                .replace("^", "^^")
+                + "\"";
     }
 }
