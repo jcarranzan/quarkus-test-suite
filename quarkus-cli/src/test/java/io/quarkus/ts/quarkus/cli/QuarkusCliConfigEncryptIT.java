@@ -63,9 +63,14 @@ public class QuarkusCliConfigEncryptIT {
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_1.propertyName)
                 .generatedKeyConsumer(encKey -> encryptionKey = encKey)
-                .assertCommandOutputContains("""
-                        The secret %s was encrypted to
-                        """.formatted(SECRET_1.secret))
+                /*
+                 * .assertCommandOutputContains("""
+                 * The secret %s was encrypted to
+                 * """.formatted(SECRET_1.secret))
+                 */
+                .assertCommandOutputContains(String.format(
+                        "The secret %s was encrypted to",
+                        EncryptPropertyTest.escapeArgumentForWindows(SECRET_1.secret)))
                 .assertCommandOutputContains("""
                         with the generated encryption key (base64):
                         """);
