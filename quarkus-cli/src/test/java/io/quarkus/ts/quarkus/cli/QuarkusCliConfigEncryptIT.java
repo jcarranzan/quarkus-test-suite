@@ -64,12 +64,19 @@ public class QuarkusCliConfigEncryptIT {
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_1.propertyName)
                 .generatedKeyConsumer(encKey -> encryptionKey = encKey)
-                .assertCommandOutputContains("""
+                .assertCommandOutputContains(normalizeCommandOutput("""
                         The secret %s was encrypted to
-                        """.formatted(SECRET_1.secret))
+                        """.formatted(SECRET_1.secret)))
                 .assertCommandOutputContains("""
                         with the generated encryption key (base64):
                         """);
+    }
+
+    private String normalizeCommandOutput(String output) {
+        if (OS.WINDOWS.isCurrentOs()) {
+            return output.replace("\"", "").replace("\\", "");
+        }
+        return output;
     }
 
     @Order(2)
