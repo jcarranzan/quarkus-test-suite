@@ -64,7 +64,7 @@ public class QuarkusCliConfigEncryptIT {
                 .storeSecretAsSecretExpression(SECRET_1.propertyName)
                 .generatedKeyConsumer(encKey -> encryptionKey = encKey)
                 .assertCommandOutputContains("""
-                        The secret %s was encrypted to
+                        The secret "%s" was encrypted to
                         """.formatted(SECRET_1.secret))
                 .assertCommandOutputContains("""
                         with the generated encryption key (base64):
