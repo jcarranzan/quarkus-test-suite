@@ -59,9 +59,11 @@ public class QuarkusCliConfigEncryptIT {
     @Test
     public void encryptSecret_Base64SecretFormat_GenerateEncryptionKey() {
         // configured props are tested by EncryptPropertyTest#encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey
-        String escapedSecret = OS.WINDOWS.isCurrentOs()
-                ? QuarkusCLIUtils.escapeSecretCharsForWindows(SECRET_1.secret)
-                : SECRET_1.secret;
+        /*
+         * String escapedSecret = OS.WINDOWS.isCurrentOs()
+         * ? QuarkusCLIUtils.escapeSecretCharsForWindows(SECRET_1.secret)
+         * : SECRET_1.secret;
+         */
         encryptBuilder
                 .secret(SECRET_1.secret)
                 .executeCommand()
@@ -71,7 +73,7 @@ public class QuarkusCliConfigEncryptIT {
 
                 .assertCommandOutputContains(String.format(
                         "The secret %s was encrypted to",
-                        escapedSecret))
+                        SECRET_1.secret))
                 .assertCommandOutputContains("""
                         with the generated encryption key (base64):
                         """);
