@@ -77,7 +77,9 @@ public class QuarkusCliConfigEncryptIT {
     private String normalizeCommandOutput(String output) {
         if (OS.WINDOWS.isCurrentOs()) {
             // Remove additional quotes and escape characters specific to Windows
-            return output.replaceAll("[\"\\\\]", "").trim().replaceAll("\\s+", " ");
+            return output
+                    .replaceAll("\\[SUCCESS\\] ", "")
+                    .replaceAll("[\"\\\\]", "").trim().replaceAll("\\s+", " ");
         }
         return output.trim().replaceAll("\\s+", " ");
     }
