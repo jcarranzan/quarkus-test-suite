@@ -55,18 +55,17 @@ public class QuarkusCliConfigEncryptIT {
                 .withSmallRyeConfigSourceKeystoreDep();
     }
 
-    @Order(1)
     @Test
     public void encryptSecret_Base64SecretFormat_GenerateEncryptionKey() {
+        // configured props are tested by EncryptPropertyTest#encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey
         encryptBuilder
                 .secret(SECRET_1.secret)
                 .executeCommand()
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_1.propertyName)
                 .generatedKeyConsumer(encKey -> encryptionKey = encKey)
-
                 .assertCommandOutputContains("""
-                        The secret \"%s\" was encrypted to
+                        The secret %s was encrypted to
                         """.formatted(SECRET_1.secret))
                 .assertCommandOutputContains("""
                         with the generated encryption key (base64):
