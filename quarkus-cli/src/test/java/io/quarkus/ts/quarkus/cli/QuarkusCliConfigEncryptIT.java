@@ -29,6 +29,7 @@ import io.quarkus.test.bootstrap.config.QuarkusEncryptConfigCommandBuilder.Encry
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
+import io.quarkus.test.util.QuarkusCLIUtils;
 import io.quarkus.ts.quarkus.cli.config.surefire.EncryptPropertyTest;
 
 @DisabledOnQuarkusVersion(version = "3\\.(9|10|11|12)\\..*", reason = "https://github.com/quarkusio/quarkus/pull/41203 merged in 3.13")
@@ -40,6 +41,7 @@ import io.quarkus.ts.quarkus.cli.config.surefire.EncryptPropertyTest;
 public class QuarkusCliConfigEncryptIT {
 
     private static QuarkusEncryptConfigCommandBuilder encryptBuilder = null;
+    private QuarkusCLIUtils quarkusCliUtils;
     private static String encryptionKey = null;
 
     @Inject
@@ -57,16 +59,19 @@ public class QuarkusCliConfigEncryptIT {
     @Test
     public void encryptSecret_Base64SecretFormat_GenerateEncryptionKey() {
         // configured props are tested by EncryptPropertyTest#encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey
+        String escapedSecret = OS.WINDOWS.isCurrentOs()
+                ? QuarkusCLIUtils.escapeSecretCharsForWindows(SECRET_1.secret)
+                : SECRET_1.secret;
         encryptBuilder
                 .secret(SECRET_1.secret)
                 .executeCommand()
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_1.propertyName)
                 .generatedKeyConsumer(encKey -> encryptionKey = encKey)
+
                 .assertCommandOutputContains(String.format(
                         "The secret %s was encrypted to",
-                        SECRET_1.secret // No escaping needed here
-                ))
+                        escapedSecret))
                 .assertCommandOutputContains("""
                         with the generated encryption key (base64):
                         """);
