@@ -43,7 +43,6 @@ public class QuarkusCliConfigEncryptIT {
     private static String encryptionKey = null;
     private static final String secretFormat = OS.WINDOWS.isCurrentOs() ? "\"%s\"" : "%s";
 
-
     @Inject
     static QuarkusConfigCommand configCommand;
 
@@ -66,10 +65,8 @@ public class QuarkusCliConfigEncryptIT {
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_1.propertyName)
                 .generatedKeyConsumer(encKey -> encryptionKey = encKey)
-                /*.assertCommandOutputContains("""
-                        The secret %s was encrypted to
-                        """.formatted(SECRET_1.secret))*/
-                .assertCommandOutputContains(String.format("The secret " + secretFormat + " was encrypted to", SECRET_1.secret))
+                .assertCommandOutputContains(String.format("The secret " + secretFormat
+                        + " was encrypted to", SECRET_1.secret))
                 .assertCommandOutputContains("""
                         with the generated encryption key (base64):
                         """);
@@ -88,9 +85,8 @@ public class QuarkusCliConfigEncryptIT {
                 .executeCommand()
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_2.propertyName)
-                .assertCommandOutputContains("""
-                        The secret %s was encrypted to
-                        """.formatted(SECRET_2.secret))
+                .assertCommandOutputContains(String.format("The secret " + secretFormat
+                        + " was encrypted to", SECRET_2.secret))
                 .assertCommandOutputNotContains("with the generated encryption key");
     }
 
@@ -113,9 +109,8 @@ public class QuarkusCliConfigEncryptIT {
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_3.propertyName)
                 .storeSecretAsRawValue(ENCRYPTED_SECRET_3_PROPERTY)
-                .assertCommandOutputContains("""
-                        The secret %s was encrypted to
-                        """.formatted(SECRET_3.secret))
+                .assertCommandOutputContains(String.format("The secret " + secretFormat
+                        + " was encrypted to", SECRET_3.secret))
                 .assertCommandOutputNotContains("with the generated encryption key");
     }
 
@@ -156,9 +151,8 @@ public class QuarkusCliConfigEncryptIT {
                 .assertApplicationPropertiesDoesNotContain(SECRET_4.secret)
                 .assertApplicationPropertiesDoesNotContain(SECRET_4.propertyName)
                 .assertApplicationPropertiesDoesNotContain(encKeyBase64Encoded)
-                .assertCommandOutputContains("""
-                        The secret %s was encrypted to
-                        """.formatted(SECRET_4.secret));
+                .assertCommandOutputContains(String.format("The secret " + secretFormat
+                        + " was encrypted to", SECRET_4.secret));
     }
 
     @Order(5)
