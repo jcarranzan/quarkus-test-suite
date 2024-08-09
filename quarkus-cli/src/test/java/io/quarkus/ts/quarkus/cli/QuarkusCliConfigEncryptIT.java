@@ -31,6 +31,9 @@ import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.ts.quarkus.cli.config.surefire.EncryptPropertyTest;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 @DisabledOnQuarkusVersion(version = "3\\.(9|10|11|12)\\..*", reason = "https://github.com/quarkusio/quarkus/pull/41203 merged in 3.13")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class) // remember, this is stateful test as well as stateful cmd builder
 @Tag("QUARKUS-3456")
@@ -41,6 +44,7 @@ public class QuarkusCliConfigEncryptIT {
 
     private static QuarkusEncryptConfigCommandBuilder encryptBuilder = null;
     private static String encryptionKey = null;
+    private static final String secretFormat = OS.WINDOWS.isCurrentOs() ? "\"%s\"" : "%s";
 
     @Inject
     static QuarkusConfigCommand configCommand;
@@ -53,28 +57,44 @@ public class QuarkusCliConfigEncryptIT {
                 .withSmallRyeConfigSourceKeystoreDep();
     }
 
+    // Helper method to encode a string to UTF-8
+    private String encodeToUtf8(String input) {
+        return new String(input.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
+    }
+
+    // Optionally, if you need to encode it to Base64 as well
+    private String encodeToBase64Utf8(String input) {
+        byte[] utf8Bytes = input.getBytes(StandardCharsets.UTF_8);
+        return Base64.getEncoder().encodeToString(utf8Bytes);
+    }
+
     @Order(1)
     @Test
     public void encryptSecret_Base64SecretFormat_GenerateEncryptionKey() {
         // configured props are tested by EncryptPropertyTest#encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey
+        String encodedSecret = encodeToUtf8(SECRET_1.secret); // Encode to UTF-8
+
+
         encryptBuilder
-                .secret(SECRET_1.secret)
+                .secret(encodedSecret)
                 .executeCommand()
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_1.propertyName)
                 .generatedKeyConsumer(encKey -> encryptionKey = encKey)
+                .assertCommandOutputContains(String.format("The secret " + secretFormat
+                        + " was encrypted to", encodedSecret).replace("\r\n", "\n"))
                 .assertCommandOutputContains("""
-                        The secret %s was encrypted to
-                        """.formatted(SECRET_1.secret))
-                .assertCommandOutputContains("""
-                        with the generated encryption key (base64):
-                        """);
+                    with the generated encryption key (base64):
+                    """);
     }
 
     @Order(2)
     @Test
     public void encryptSecret_PlainKeyFormat_ExistingEncryptionKey() {
         // configured props are tested by EncryptPropertyTest#encryptSecret_PlainKeyFormat_ExistingEncryptionKey
+        System.out.println("PLAIN " + plain);
+        System.out.println("encryptionKey " + encryptionKey);
+        System.out.println("WILL BE STORED " + SECRET_2.propertyName);
         encryptBuilder
                 .encryptionKeyFormat(plain)
                 .encryptionKeyFormatOpt(EncryptionKeyFormatOpt.SHORT)
@@ -109,13 +129,12 @@ public class QuarkusCliConfigEncryptIT {
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_3.propertyName)
                 .storeSecretAsRawValue(ENCRYPTED_SECRET_3_PROPERTY)
-                .assertCommandOutputContains("""
-                        The secret %s was encrypted to
-                        """.formatted(SECRET_3.secret))
+                .assertCommandOutputContains(String.format("The secret " + secretFormat
+                        + " was encrypted to", SECRET_3.secret))
                 .assertCommandOutputNotContains("with the generated encryption key");
     }
 
-    @DisabledOnOs(OS.WINDOWS) // Keytool command would require adjustments on Windows
+   /* @DisabledOnOs(OS.WINDOWS)*/ // Keytool command would require adjustments on Windows
     @Order(4)
     @Test
     public void testKeyStoreConfigSourceWithSecrets() {
@@ -152,9 +171,8 @@ public class QuarkusCliConfigEncryptIT {
                 .assertApplicationPropertiesDoesNotContain(SECRET_4.secret)
                 .assertApplicationPropertiesDoesNotContain(SECRET_4.propertyName)
                 .assertApplicationPropertiesDoesNotContain(encKeyBase64Encoded)
-                .assertCommandOutputContains("""
-                        The secret %s was encrypted to
-                        """.formatted(SECRET_4.secret));
+                .assertCommandOutputContains(String.format("The secret " + secretFormat
+                        + " was encrypted to", SECRET_4.secret));
     }
 
     @Order(5)

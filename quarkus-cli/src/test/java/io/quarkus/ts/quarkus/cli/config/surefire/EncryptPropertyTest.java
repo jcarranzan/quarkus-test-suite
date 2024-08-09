@@ -77,10 +77,15 @@ public class EncryptPropertyTest {
     }
 
     private String getSecret1() {
-        return config.getValue(SECRET_1.propertyName, String.class);
+        String rawSecret1 = config.getValue(SECRET_1.propertyName, String.class);
+        System.out.println("SECRET 1 Value from configuration " + rawSecret1);
+        rawSecret1 = rawSecret1.replace("\\\"", "\"");
+
+        return config.convert(rawSecret1, String.class);
     }
 
     private String getSecret2() {
+        System.out.println("SECRET 2 Value from configuration " + config.getValue(SECRET_2.propertyName, String.class));
         return config.getValue(SECRET_2.propertyName, String.class);
     }
 
@@ -97,7 +102,7 @@ public class EncryptPropertyTest {
     }
 
     public enum EncryptProperties {
-        SECRET_1("secret-1", "!@#$^%^&*()__++_)--=", null),
+        SECRET_1("secret-1", "!@#$^%^&()__++_)--=", null),
         SECRET_2("secret-2", "charter school", null),
         SECRET_3("secret-3", "Jr Gong", "Make It Bun Dem"),
         SECRET_4("secret-4", "Joe Biden", null);
@@ -110,6 +115,9 @@ public class EncryptPropertyTest {
             this.propertyName = propertyName;
             this.secret = secret;
             this.encryptionKey = encryptionKey;
+            System.out.println("propertyName ** " + this.propertyName);
+            System.out.println("secret ** " + this.secret);
+            System.out.println("encryptionKey **  " + this.encryptionKey);
         }
     }
 }
