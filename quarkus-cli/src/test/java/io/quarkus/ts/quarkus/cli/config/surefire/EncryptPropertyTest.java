@@ -97,7 +97,7 @@ public class EncryptPropertyTest {
     }
 
     public enum EncryptProperties {
-        SECRET_1("secret-1", "!@#$^%^&*()__++_)--=", null),
+        SECRET_1("secret-1", "hola", null),
         SECRET_2("secret-2", "charter school", null),
         SECRET_3("secret-3", "Jr Gong", "Make It Bun Dem"),
         SECRET_4("secret-4", "Joe Biden", null);
