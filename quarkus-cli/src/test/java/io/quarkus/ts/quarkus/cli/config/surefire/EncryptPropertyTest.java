@@ -35,10 +35,39 @@ public class EncryptPropertyTest {
     @Inject
     SmallRyeConfig config;
 
+    private static void verifyBase64(String encodedString) {
+        try {
+            Base64.getDecoder().decode(encodedString);
+            System.out.println("Base64 value is valid: " + encodedString);
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid Base64 value: " + encodedString);
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void verifyBase64ValuesForSecret1() {
+        // Get the Base64 encoded value from the configuration
+        String encryptedValue = config.getValue(SECRET_1.propertyName, String.class);
+
+        // Debug log the value to verify
+        System.out.println("Raw Base64 Encoded Value for SECRET_1: " + encryptedValue);
+
+        // Check if the Base64 encoded value is valid
+        verifyBase64(encryptedValue);
+    }
+
+
     @Test
     void encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey() {
-        assertEquals(SECRET_1.secret, getSecret1());
+        // Add debug logging to check the value
+        String secret1Value = getSecret1();
+        System.out.println("SECRET 1 Expected: " + SECRET_1.secret);
+        System.out.println("SECRET 1 Actual: " + secret1Value);
+
+        assertEquals(SECRET_1.secret, secret1Value);
     }
+
 
     @Disabled
     @Test
@@ -81,9 +110,8 @@ public class EncryptPropertyTest {
 
     private String getSecret1() {
         String rawSecret1 = config.getValue(SECRET_1.propertyName, String.class);
-        System.out.println("SECRET 1 Value from configuration " + rawSecret1);
+        System.out.println("Raw SECRET 1 from config: " + rawSecret1);
         rawSecret1 = rawSecret1.replace("\\\"", "\"");
-
         return config.convert(rawSecret1, String.class);
     }
 
