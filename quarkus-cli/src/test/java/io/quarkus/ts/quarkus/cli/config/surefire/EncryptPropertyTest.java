@@ -98,7 +98,9 @@ public class EncryptPropertyTest {
     }
 
     private static String encode(String key) {
-        return Base64.getUrlEncoder().withoutPadding().encodeToString((key.getBytes(StandardCharsets.UTF_8)));
+
+      //  return Base64.getUrlEncoder().withoutPadding().encodeToString((key.getBytes(StandardCharsets.UTF_8)));
+        return Base64.getEncoder().encodeToString(key.getBytes(StandardCharsets.UTF_8));
     }
 
     public enum EncryptProperties {
