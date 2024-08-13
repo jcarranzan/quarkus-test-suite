@@ -37,6 +37,11 @@ public class EncryptPropertyTest {
 
     private static void verifyBase64(String encodedString) {
         try {
+            // Log the encoded string length and content
+            System.out.println("Verifying Base64 value: " + encodedString);
+            System.out.println("Encoded string length: " + encodedString.length());
+
+            // Try decoding
             Base64.getDecoder().decode(encodedString);
             System.out.println("Base64 value is valid: " + encodedString);
         } catch (IllegalArgumentException e) {
@@ -48,6 +53,7 @@ public class EncryptPropertyTest {
     @Test
     void verifyBase64ValuesForSecret1() {
         // Get the Base64 encoded value from the configuration
+        System.out.println("SECRET_1.propertyName ----> " + SECRET_1.propertyName);
         String encryptedValue = config.getValue(SECRET_1.propertyName, String.class);
 
         // Debug log the value to verify
