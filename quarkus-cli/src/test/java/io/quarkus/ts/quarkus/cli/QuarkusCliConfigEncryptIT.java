@@ -71,12 +71,12 @@ public class QuarkusCliConfigEncryptIT {
     @Order(1)
     @Test
     public void encryptSecret_Base64SecretFormat_GenerateEncryptionKey() {
-        // Assume SECRET_1.secret is in plain text, encode it to Base64
-        String encodedSecret = Base64.getEncoder().encodeToString(SECRET_1.secret.getBytes(StandardCharsets.UTF_8));
+        // Encode SECRET_1.secret to Base64
+        String encodedSecret = encodeToBase64Utf8(SECRET_1.secret);
         System.out.println("Original Secret: " + SECRET_1.secret);
         System.out.println("Encoded Secret: " + encodedSecret);
         encryptBuilder
-                .secret(encodedSecret)  // Now the secret is properly Base64 encoded
+                .secret(encodedSecret)  // Use the Base64 encoded secret
                 .executeCommand()
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_1.propertyName)
