@@ -71,12 +71,12 @@ public class QuarkusCliConfigEncryptIT {
     @Order(1)
     @Test
     public void encryptSecret_Base64SecretFormat_GenerateEncryptionKey() {
-        // configured props are tested by EncryptPropertyTest#encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey
-        String encodedSecret = encodeToUtf8(SECRET_1.secret); // Encode to UTF-8
-
-
+        // Assume SECRET_1.secret is in plain text, encode it to Base64
+        String encodedSecret = Base64.getEncoder().encodeToString(SECRET_1.secret.getBytes(StandardCharsets.UTF_8));
+        System.out.println("Original Secret: " + SECRET_1.secret);
+        System.out.println("Encoded Secret: " + encodedSecret);
         encryptBuilder
-                .secret(encodedSecret)
+                .secret(encodedSecret)  // Now the secret is properly Base64 encoded
                 .executeCommand()
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_1.propertyName)
@@ -85,8 +85,9 @@ public class QuarkusCliConfigEncryptIT {
                         + " was encrypted to", encodedSecret).replace("\r\n", "\n"))
                 .assertCommandOutputContains("""
                     with the generated encryption key (base64):
-                    """);
+                    """.replace("\r\n", "\n"));
     }
+
 
     @Order(2)
     @Test
