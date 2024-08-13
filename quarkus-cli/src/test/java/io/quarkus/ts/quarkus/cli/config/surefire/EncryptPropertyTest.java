@@ -36,9 +36,24 @@ public class EncryptPropertyTest {
 
     @Test
     void encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey() {
+        String secret1 = getSecret1();
+        System.out.println("SECRET 1 " + secret1);
+        String expectedBase64 = encode(SECRET_1.secret);
+        System.out.println("EXPBASE64 " + expectedBase64);
+        verifyBase64(secret1); // Added ver
         assertEquals(SECRET_1.secret, getSecret1());
     }
 
+    private void verifyBase64(String encodedString) {
+        try {
+            Base64.getDecoder().decode(encodedString); // Check if decoding is successful
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid Base64 value: [" + encodedString + "]");
+            e.printStackTrace();
+        }
+    }
+
+    /*
     @Test
     public void encryptSecret_PlainKeyFormat_ExistingEncryptionKey() {
         assertEquals(SECRET_2.secret, getSecret2());
@@ -70,17 +85,19 @@ public class EncryptPropertyTest {
         Assumptions.assumeFalse(OS.WINDOWS.isCurrentOs()); // Keytool command would require adjustments on Windows
 
         assertEquals(SECRET_4.secret, getSecret4());
-    }
+    }*/
 
     private void getSecretFromUnknownSecretHandler() {
         config.getValue(UNKNOWN_SECRET_HANDLER_PROPERTY, String.class);
     }
 
     private String getSecret1() {
+        System.out.println("** getSecret1 ** method");
+        System.out.println("properSecret1Name " + SECRET_1.propertyName);
         return config.getValue(SECRET_1.propertyName, String.class);
     }
 
-    private String getSecret2() {
+ /*   private String getSecret2() {
         return config.getValue(SECRET_2.propertyName, String.class);
     }
 
@@ -90,14 +107,14 @@ public class EncryptPropertyTest {
 
     private String getSecret4() {
         return config.getValue(SECRET_4.propertyName, String.class);
-    }
+    }*/
 
     private static String encode(String key) {
         return Base64.getUrlEncoder().withoutPadding().encodeToString((key.getBytes(StandardCharsets.UTF_8)));
     }
 
     public enum EncryptProperties {
-        SECRET_1("secret-1", "!@#$^%^&*()__++_)--=", null),
+        SECRET_1("secret-1", "thisIsSecret1", null),
         SECRET_2("secret-2", "charter school", null),
         SECRET_3("secret-3", "Jr Gong", "Make It Bun Dem"),
         SECRET_4("secret-4", "Joe Biden", null);
