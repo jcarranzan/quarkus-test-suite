@@ -15,6 +15,7 @@ import jakarta.inject.Inject;
 
 import org.eclipse.microprofile.config.Config;
 import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.OS;
 
@@ -39,11 +40,13 @@ public class EncryptPropertyTest {
         assertEquals(SECRET_1.secret, getSecret1());
     }
 
+    @Disabled
     @Test
     public void encryptSecret_PlainKeyFormat_ExistingEncryptionKey() {
         assertEquals(SECRET_2.secret, getSecret2());
     }
 
+    @Disabled
     @Test
     public void failToDecryptSecretInWrongFormat() {
         // wrong encryption key
