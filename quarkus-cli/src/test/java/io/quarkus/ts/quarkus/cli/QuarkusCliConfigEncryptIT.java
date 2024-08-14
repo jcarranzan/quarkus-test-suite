@@ -58,10 +58,10 @@ public class QuarkusCliConfigEncryptIT {
     @Order(1)
     @Test
     public void encryptSecret_Base64SecretFormat_GenerateEncryptionKey() {
+
         // configured props are tested by EncryptPropertyTest#encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey
         encryptBuilder
                 .encryptionKeyFormat(base64)
-                .encryptionKey(encryptionKey)
                 .secret(SECRET_1.secret)
                 .executeCommand()
 
@@ -78,7 +78,6 @@ public class QuarkusCliConfigEncryptIT {
         System.out.println("Generated encryption key: " + encryptionKey);
         QuarkusEncryptConfigCommandResult result = encryptBuilder
                 .encryptionKeyFormat(base64)
-                .encryptionKey(encryptionKey)
                 .secret(SECRET_1.secret)
                 .executeCommand();
 
