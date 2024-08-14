@@ -58,6 +58,7 @@ public class QuarkusCliConfigEncryptIT {
     public void encryptSecret_Base64SecretFormat_GenerateEncryptionKey() {
         // configured props are tested by EncryptPropertyTest#encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey
         encryptBuilder
+                .encryptionKeyFormat(base64)
                 .secret(SECRET_1.secret)
                 .executeCommand()
                 .secretConsumer(Assertions::assertNotNull)
@@ -76,7 +77,7 @@ public class QuarkusCliConfigEncryptIT {
     public void encryptSecret_PlainKeyFormat_ExistingEncryptionKey() {
         // configured props are tested by EncryptPropertyTest#encryptSecret_PlainKeyFormat_ExistingEncryptionKey
         encryptBuilder
-                .encryptionKeyFormat(plain)
+                .encryptionKeyFormat(base64)
                 .encryptionKeyFormatOpt(EncryptionKeyFormatOpt.SHORT)
                 .encryptionKey(encryptionKey)
                 .encryptionKeyOpt(EncryptionKeyOpt.SHORT)
@@ -139,7 +140,7 @@ public class QuarkusCliConfigEncryptIT {
         // generate keystores
         var encKeyBase64Encoded = base64.format(QuarkusEncryptConfigCommandBuilder.generateEncryptionKey());
         encryptBuilder
-                .encryptionKeyFormat(plain)
+                .encryptionKeyFormat(base64)
                 .encryptionKeyFormatOpt(EncryptionKeyFormatOpt.LONG)
                 .secret(SECRET_4.secret)
                 .encryptionKey(encryptionKey)
