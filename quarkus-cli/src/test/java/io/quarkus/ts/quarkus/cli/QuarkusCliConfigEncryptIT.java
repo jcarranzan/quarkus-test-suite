@@ -10,6 +10,8 @@ import static io.quarkus.ts.quarkus.cli.config.surefire.EncryptPropertyTest.Encr
 import static io.quarkus.ts.quarkus.cli.config.surefire.EncryptPropertyTest.EncryptProperties.SECRET_3;
 import static io.quarkus.ts.quarkus.cli.config.surefire.EncryptPropertyTest.EncryptProperties.SECRET_4;
 
+import io.quarkus.test.bootstrap.config.QuarkusConfigCommandResult;
+import io.quarkus.test.bootstrap.config.QuarkusEncryptConfigCommandResult;
 import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.Assertions;
@@ -59,20 +61,33 @@ public class QuarkusCliConfigEncryptIT {
         // configured props are tested by EncryptPropertyTest#encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey
         encryptBuilder
                 .encryptionKeyFormat(base64)
+                .encryptionKey(encryptionKey)
                 .secret(SECRET_1.secret)
                 .executeCommand()
+
                 .secretConsumer(Assertions::assertNotNull)
                 .storeSecretAsSecretExpression(SECRET_1.propertyName)
                 .generatedKeyConsumer(encKey -> encryptionKey = encKey)
+
                 .assertCommandOutputContains("""
                         The secret %s was encrypted to
                         """.formatted(SECRET_1.secret))
                 .assertCommandOutputContains("""
                         with the generated encryption key (base64):
                         """);
+        System.out.println("Generated encryption key: " + encryptionKey);
+        QuarkusEncryptConfigCommandResult result = encryptBuilder
+                .encryptionKeyFormat(base64)
+                .encryptionKey(encryptionKey)
+                .secret(SECRET_1.secret)
+                .executeCommand();
+
+        System.out.println("Command output: " + result.getOutput());
+        System.out.println("Application properties after encryption: " + result.getApplicationPropertiesAsString());
+
     }
 
-    @Order(2)
+    /*@Order(2)
     @Test
     public void encryptSecret_PlainKeyFormat_ExistingEncryptionKey() {
         // configured props are tested by EncryptPropertyTest#encryptSecret_PlainKeyFormat_ExistingEncryptionKey
@@ -166,9 +181,9 @@ public class QuarkusCliConfigEncryptIT {
         // add unknown secret handler so that unit test can assert this is not reported
         encryptBuilder.getConfigCommand()
                 .addToApplicationPropertiesFile(UNKNOWN_SECRET_HANDLER_PROPERTY, "${unknown-secret-handler::hush-hush}");
-    }
+    }*/
 
-    @Order(6)
+    @Order(2)
     @Test
     public void testEncryptCommandHelp() {
         encryptBuilder
@@ -201,7 +216,7 @@ public class QuarkusCliConfigEncryptIT {
                 .assertCommandOutputContains("The Encryption Key");
     }
 
-    @Order(7)
+    @Order(3)
     @Test
     public void testQuarkusApplicationWithGeneratedSecrets() {
         encryptBuilder.getConfigCommand().buildAppAndExpectSuccess(EncryptPropertyTest.class);

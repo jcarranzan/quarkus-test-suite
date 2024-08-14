@@ -37,9 +37,9 @@ public class EncryptPropertyTest {
     @Test
     void encryptedSecret_Base64SecretFormat_GeneratedEncryptionKey() {
         String secret1 = getSecret1();
-        System.out.println("SECRET 1 " + secret1);
+        System.out.println("Retrieved secret1: " + secret1);
         String expectedBase64 = encode(SECRET_1.secret);
-        System.out.println("EXPBASE64 " + expectedBase64);
+        System.out.println("Expected Base64: " + expectedBase64);
         verifyBase64(secret1); // Added ver
         assertEquals(SECRET_1.secret, getSecret1());
     }
