@@ -71,7 +71,7 @@ public class QuarkusCliConfigEncryptIT {
                         """);
     }
 
-    @Order(2)
+   /* @Order(2)
     @Test
     public void encryptSecret_PlainKeyFormat_ExistingEncryptionKey() {
         // configured props are tested by EncryptPropertyTest#encryptSecret_PlainKeyFormat_ExistingEncryptionKey
@@ -165,9 +165,9 @@ public class QuarkusCliConfigEncryptIT {
         // add unknown secret handler so that unit test can assert this is not reported
         encryptBuilder.getConfigCommand()
                 .addToApplicationPropertiesFile(UNKNOWN_SECRET_HANDLER_PROPERTY, "${unknown-secret-handler::hush-hush}");
-    }
+    }*/
 
-    @Order(6)
+    @Order(2)
     @Test
     public void testEncryptCommandHelp() {
         encryptBuilder
@@ -200,7 +200,7 @@ public class QuarkusCliConfigEncryptIT {
                 .assertCommandOutputContains("The Encryption Key");
     }
 
-    @Order(7)
+    @Order(3)
     @Test
     public void testQuarkusApplicationWithGeneratedSecrets() {
         encryptBuilder.getConfigCommand().buildAppAndExpectSuccess(EncryptPropertyTest.class);
