@@ -75,6 +75,15 @@ public class QuarkusCliConfigEncryptIT {
                         .secret(SECRET_1.secret)
                         .executeCommand();
         System.out.println("OUTPUT *** " + result.getOutput());
+        System.out.println("Application PROPERTIES after encryption: " + result.getApplicationPropertiesAsString());
+        System.out.println("Encrypted secret: " + result.getEncryptedSecret());
+
+        // If you are reusing the encryption key, print it
+        if (encryptionKey != null) {
+            System.out.println("Encryption KEY used: " + encryptionKey);
+        }
+
+
     }
 
    /* @Order(2)
