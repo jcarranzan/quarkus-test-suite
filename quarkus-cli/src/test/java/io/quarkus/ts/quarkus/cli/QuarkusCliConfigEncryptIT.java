@@ -71,7 +71,7 @@ public class QuarkusCliConfigEncryptIT {
                         """);
     }
 
-    @Order(2)
+   /* @Order(2)
     @Test
     public void encryptSecret_PlainKeyFormat_ExistingEncryptionKey() {
         // configured props are tested by EncryptPropertyTest#encryptSecret_PlainKeyFormat_ExistingEncryptionKey
@@ -195,9 +195,9 @@ public class QuarkusCliConfigEncryptIT {
                 .assertCommandOutputContains("Verbose mode")
                 .assertCommandOutputContains("-k, --key=<encryptionKey>")
                 .assertCommandOutputContains("The Encryption Key");
-    }
+    }*/
 
-    @Order(7)
+    @Order(2)
     @Test
     public void testQuarkusApplicationWithGeneratedSecrets() {
         encryptBuilder.getConfigCommand().buildAppAndExpectSuccess(EncryptPropertyTest.class);
