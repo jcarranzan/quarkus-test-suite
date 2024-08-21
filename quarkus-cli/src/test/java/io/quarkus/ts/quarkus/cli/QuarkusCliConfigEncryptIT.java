@@ -200,10 +200,10 @@ public class QuarkusCliConfigEncryptIT {
                 .assertCommandOutputContains("The Encryption Key");
     }*/
 
-    /*@Order(3)
+    @Order(3)
     @Test
     public void testQuarkusApplicationWithGeneratedSecrets() {
         encryptBuilder.getConfigCommand().buildAppAndExpectSuccess(EncryptPropertyTest.class);
-    }*/
+    }
 
 }
