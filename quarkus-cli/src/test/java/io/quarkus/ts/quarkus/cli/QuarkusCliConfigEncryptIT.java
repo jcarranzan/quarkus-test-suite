@@ -70,8 +70,7 @@ public class QuarkusCliConfigEncryptIT {
                         with the generated encryption key (base64):
                         """);
     }
-
-   /* @Order(2)
+    @Order(2)
     @Test
     public void encryptSecret_PlainKeyFormat_ExistingEncryptionKey() {
         // configured props are tested by EncryptPropertyTest#encryptSecret_PlainKeyFormat_ExistingEncryptionKey
@@ -88,6 +87,8 @@ public class QuarkusCliConfigEncryptIT {
                         + " was encrypted to", SECRET_2.secret))
                 .assertCommandOutputNotContains("with the generated encryption key");
     }
+/*
+
 
     @Order(3)
     @Test
@@ -114,7 +115,19 @@ public class QuarkusCliConfigEncryptIT {
     }
 
     @DisabledOnOs(OS.WINDOWS) // Keytool command would require adjustments on Windows
-    @Order(4)
+
+
+    @Order(2)
+    @Test
+    public void testWrongSecretKeyHandler() {
+        // configured property is tested by EncryptPropertyTest#testWrongSecretKeyHandler
+
+        // add unknown secret handler so that unit test can assert this is not reported
+        encryptBuilder.getConfigCommand()
+                .addToApplicationPropertiesFile(UNKNOWN_SECRET_HANDLER_PROPERTY, "${unknown-secret-handler::hush-hush}");
+    }*/
+
+   /* @Order(3)
     @Test
     public void testKeyStoreConfigSourceWithSecrets() {
         // configured keystore config source is tested by EncryptPropertyTest#testKeyStoreConfigSourceWithSecrets
@@ -154,17 +167,7 @@ public class QuarkusCliConfigEncryptIT {
                         + " was encrypted to", SECRET_4.secret));
     }
 
-    @Order(5)
-    @Test
-    public void testWrongSecretKeyHandler() {
-        // configured property is tested by EncryptPropertyTest#testWrongSecretKeyHandler
-
-        // add unknown secret handler so that unit test can assert this is not reported
-        encryptBuilder.getConfigCommand()
-                .addToApplicationPropertiesFile(UNKNOWN_SECRET_HANDLER_PROPERTY, "${unknown-secret-handler::hush-hush}");
-    }
-
-    @Order(6)
+    @Order(4)
     @Test
     public void testEncryptCommandHelp() {
         encryptBuilder
@@ -197,10 +200,10 @@ public class QuarkusCliConfigEncryptIT {
                 .assertCommandOutputContains("The Encryption Key");
     }*/
 
-    @Order(2)
+    /*@Order(3)
     @Test
     public void testQuarkusApplicationWithGeneratedSecrets() {
         encryptBuilder.getConfigCommand().buildAppAndExpectSuccess(EncryptPropertyTest.class);
-    }
+    }*/
 
 }

@@ -77,6 +77,8 @@ public class EncryptPropertyTest {
     }
 
     private String getSecret1() {
+        System.out.println("Property NAME (secret1) " + SECRET_1.propertyName);
+
         return config.getValue(SECRET_1.propertyName, String.class);
     }
 
