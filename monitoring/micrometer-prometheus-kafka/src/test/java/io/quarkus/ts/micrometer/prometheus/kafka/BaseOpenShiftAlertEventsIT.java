@@ -2,6 +2,7 @@ package io.quarkus.ts.micrometer.prometheus.kafka;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Paths;
@@ -118,6 +119,10 @@ public abstract class BaseOpenShiftAlertEventsIT {
             String response = getApp().given().get("/q/metrics").then()
                     .statusCode(HttpStatus.SC_OK)
                     .extract().asString();
+
+            LOG.info("Metrics where we'll see kafka_version ---> " + response);
+            boolean isKafkaVersionKnown = response.contains("kafka_version=\"unknown\"");
+            assertFalse(isKafkaVersionKnown, "Error: kafka_version is 'unknown' in the metrics response");
 
             boolean matches = false;
             for (String line : response.split("[\r\n]+")) {
