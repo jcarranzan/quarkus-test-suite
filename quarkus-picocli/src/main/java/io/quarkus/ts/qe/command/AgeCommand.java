@@ -3,6 +3,7 @@ package io.quarkus.ts.qe.command;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import io.quarkus.logging.Log;
+import io.quarkus.runtime.Quarkus;
 
 import picocli.CommandLine;
 
@@ -26,5 +27,6 @@ public class AgeCommand implements Runnable {
     @Override
     public void run() {
         Log.info("Your age is: " + age);
+        Quarkus.asyncExit();
     }
 }
