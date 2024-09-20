@@ -1,16 +1,19 @@
 import static java.util.concurrent.CompletableFuture.runAsync;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.QuarkusApplication;
+import io.quarkus.ts.qe.command.CommonOptions;
+import io.quarkus.ts.qe.command.OtherCommand;
+import io.quarkus.ts.qe.command.OtherEntryCommand;
+import io.quarkus.ts.qe.configuration.Config;
 
-@Disabled("Requires 'prod' profile. Disabled because the test fails when the application is built and run with the default 'dev' profile. Enable by building with '-Dquarkus.profile=prod'.")
 @QuarkusScenario
 public class PicocliProdIT {
-    @QuarkusApplication
+    @QuarkusApplication(classes = { OtherEntryCommand.class, Config.class, OtherCommand.class,
+            CommonOptions.class }, properties = "test.properties")
     static final RestService customized = new RestService()
             .withProperty("quarkus.profile", "prod")
             .withProperty("quarkus.args", "start -t 60 -v")

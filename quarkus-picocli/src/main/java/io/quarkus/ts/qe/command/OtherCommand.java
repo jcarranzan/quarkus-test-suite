@@ -19,8 +19,3 @@ public class OtherCommand implements Runnable {
     }
 
 }
-
-class CommonOptions {
-    @CommandLine.Option(names = { "-v", "--verbose" }, description = "Enable verbose mode")
-    boolean verbose;
-}
