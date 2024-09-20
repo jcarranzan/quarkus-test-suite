@@ -5,35 +5,46 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.QuarkusApplication;
+import io.quarkus.ts.qe.command.AgeCommand;
+import io.quarkus.ts.qe.command.EntryCommand;
+import io.quarkus.ts.qe.command.HelloCommand;
+import io.quarkus.ts.qe.configuration.Config;
+import io.quarkus.ts.qe.services.AgeService;
+import io.quarkus.ts.qe.services.HelloService;
 
 @QuarkusScenario
 public class PicocliDevIT {
 
-    @QuarkusApplication
+    @QuarkusApplication(classes = { EntryCommand.class, Config.class, HelloCommand.class, AgeCommand.class, AgeService.class,
+            HelloService.class }, properties = "dev.properties")
     static final RestService greetingApp = new RestService()
             .withProperty("quarkus.profile", "dev")
             .withProperty("quarkus.args", "greeting --name QE")
             .setAutoStart(false);
 
-    @QuarkusApplication
+    @QuarkusApplication(classes = { EntryCommand.class, Config.class, HelloCommand.class, AgeCommand.class, AgeService.class,
+            HelloService.class }, properties = "dev.properties")
     static final RestService ageApp = new RestService()
             .withProperty("quarkus.profile", "dev")
             .withProperty("quarkus.args", "age --age 30")
             .setAutoStart(false);
 
-    @QuarkusApplication
+    @QuarkusApplication(classes = { EntryCommand.class, Config.class, HelloCommand.class, AgeCommand.class, AgeService.class,
+            HelloService.class }, properties = "dev.properties")
     static final RestService greetingBlankArgumentApp = new RestService()
             .withProperty("quarkus.profile", "dev")
             .withProperty("quarkus.args", " --name QE")
             .setAutoStart(false);
 
-    @QuarkusApplication
+    @QuarkusApplication(classes = { EntryCommand.class, Config.class, HelloCommand.class, AgeCommand.class, AgeService.class,
+            HelloService.class }, properties = "dev.properties")
     static final RestService greetingInvalidArgumentApp = new RestService()
             .withProperty("quarkus.profile", "dev")
             .withProperty("quarkus.args", "greeting -x QE")
             .setAutoStart(false);
 
-    @QuarkusApplication
+    @QuarkusApplication(classes = { EntryCommand.class, Config.class, HelloCommand.class, AgeCommand.class, AgeService.class,
+            HelloService.class }, properties = "dev.properties")
     static final RestService bothTopCommandApp = new RestService()
             .withProperty("quarkus.profile", "dev")
             .setAutoStart(false);

@@ -13,7 +13,7 @@ import io.quarkus.ts.qe.configuration.Config;
 @QuarkusScenario
 public class PicocliProdIT {
     @QuarkusApplication(classes = { OtherEntryCommand.class, Config.class, OtherCommand.class,
-            CommonOptions.class }, properties = "test.properties")
+            CommonOptions.class }, properties = "prod.properties")
     static final RestService customized = new RestService()
             .withProperty("quarkus.profile", "prod")
             .withProperty("quarkus.args", "start -t 60 -v")
