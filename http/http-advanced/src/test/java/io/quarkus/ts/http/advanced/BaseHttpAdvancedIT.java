@@ -3,7 +3,6 @@ package io.quarkus.ts.http.advanced;
 import static io.quarkus.ts.http.advanced.HelloResource.EVENT_PROPAGATION_WAIT_MS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
@@ -38,7 +37,6 @@ import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.EnabledOnQuarkusVersion;
 import io.quarkus.test.security.certificate.CertificateBuilder;
-import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
@@ -51,7 +49,6 @@ public abstract class BaseHttpAdvancedIT {
 
     private static final String ROOT_PATH = "/api";
     private static final int TIMEOUT_SEC = 3;
-    private static final int RETRY = 3;
     private static final String PASSWORD = "password";
     private static final String SSE_ERROR_MESSAGE = "java.lang.ClassNotFoundException: Provider for jakarta.ws.rs.sse.SseEventSource.Builder cannot be found";
 
@@ -127,20 +124,25 @@ public abstract class BaseHttpAdvancedIT {
     @DisplayName("Http/2 Server test")
     public void http2Server() throws InterruptedException {
         CountDownLatch done = new CountDownLatch(1);
-        Uni<JsonObject> content = getApp().mutiny(defaultVertxHttpClientOptions())
+
+        getApp().mutiny(defaultVertxHttpClientOptions())
                 .getAbs(getAppEndpoint() + "/hello")
                 .expect(ResponsePredicate.create(this::isHttp2x))
-                .expect(ResponsePredicate.status(Response.Status.OK.getStatusCode())).send()
-                .map(HttpResponse::bodyAsJsonObject).ifNoItem().after(Duration.ofSeconds(TIMEOUT_SEC)).fail()
-                .onFailure().retry().atMost(RETRY);
+                .expect(ResponsePredicate.status(Response.Status.OK.getStatusCode()))
+                .send()
+                .subscribe()
+                .with(response -> {
+                    JsonObject body = response.bodyAsJsonObject();
+                    assertEquals("Hello, World!", body.getString("content"));
+                    done.countDown();
+                }, throwable -> {
+                    fail("Request failed: " + throwable.getMessage());
+                    done.countDown();
+                });
 
-        content.subscribe().with(body -> {
-            assertEquals(body.getString("content"), "Hello, World!");
-            done.countDown();
-        });
-
-        done.await(TIMEOUT_SEC, TimeUnit.SECONDS);
-        assertThat(done.getCount(), equalTo(0L));
+        if (!done.await(TIMEOUT_SEC, TimeUnit.SECONDS)) {
+            fail("Test timed out");
+        }
     }
 
     @Test
@@ -244,6 +246,7 @@ public abstract class BaseHttpAdvancedIT {
     private WebClientOptions defaultVertxHttpClientOptions() {
         return new WebClientOptions().setProtocolVersion(HttpVersion.HTTP_2).setSsl(true).setVerifyHost(false)
                 .setUseAlpn(true)
+                .setMaxPoolSize(1)
                 .setTrustStoreOptions(new JksOptions().setPassword(PASSWORD).setPath(defaultTruststore()));
     }
 
