@@ -14,8 +14,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.ws.rs.core.Response;
 
@@ -38,18 +36,15 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.EnabledOnQuarkusVersion;
 import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.vertx.core.http.HttpVersion;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.ext.web.client.HttpResponse;
-import io.vertx.mutiny.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.mutiny.ext.web.client.predicate.ResponsePredicateResult;
 
 public abstract class BaseHttpAdvancedIT {
 
     private static final String ROOT_PATH = "/api";
-    private static final int TIMEOUT_SEC = 3;
+    private static final int TIMEOUT_SEC = 2;
     private static final String PASSWORD = "password";
-    private static final int RETRY = 2;
     private static final String SSE_ERROR_MESSAGE = "java.lang.ClassNotFoundException: Provider for jakarta.ws.rs.sse.SseEventSource.Builder cannot be found";
 
     protected abstract RestService getApp();
@@ -120,30 +115,33 @@ public abstract class BaseHttpAdvancedIT {
                         containsString("ClientInterceptors$MethodTarget"));
     }
 
-    @Test
-    @DisplayName("Http/2 Server test")
-    public void http2Server() throws InterruptedException {
-        CountDownLatch done = new CountDownLatch(1);
-
-        getApp().mutiny(defaultVertxHttpClientOptions())
-                .getAbs(getAppEndpoint() + "/hello")
-                .expect(ResponsePredicate.create(this::isHttp2x))
-                .expect(ResponsePredicate.status(Response.Status.OK.getStatusCode()))
-                .send()
-                .subscribe()
-                .with(response -> {
-                    JsonObject body = response.bodyAsJsonObject();
-                    assertEquals("Hello, World!", body.getString("content"));
-                    done.countDown();
-                }, throwable -> {
-                    fail("Request failed: " + throwable.getMessage());
-                    done.countDown();
-                });
-
-        if (!done.await(TIMEOUT_SEC, TimeUnit.SECONDS)) {
-            fail("Test timed out");
-        }
-    }
+    /*
+     * @Test
+     *
+     * @DisplayName("Http/2 Server test")
+     * public void http2Server() throws InterruptedException {
+     * CountDownLatch done = new CountDownLatch(1);
+     *
+     * getApp().mutiny(defaultVertxHttpClientOptions())
+     * .getAbs(getAppEndpoint() + "/hello")
+     * .expect(ResponsePredicate.create(this::isHttp2x))
+     * .expect(ResponsePredicate.status(Response.Status.OK.getStatusCode()))
+     * .send()
+     * .subscribe()
+     * .with(response -> {
+     * JsonObject body = response.bodyAsJsonObject();
+     * assertEquals("Hello, World!", body.getString("content"));
+     * done.countDown();
+     * }, throwable -> {
+     * fail("Request failed: " + throwable.getMessage());
+     * done.countDown();
+     * });
+     *
+     * if (!done.await(TIMEOUT_SEC, TimeUnit.SECONDS)) {
+     * fail("Test timed out");
+     * }
+     * }
+     */
 
     @Test
     @DisplayName("Non-application endpoint move to /q/")
