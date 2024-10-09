@@ -247,7 +247,6 @@ public abstract class BaseHttpAdvancedIT {
     private WebClientOptions defaultVertxHttpClientOptions() {
         return new WebClientOptions().setProtocolVersion(HttpVersion.HTTP_2).setSsl(true).setVerifyHost(false)
                 .setUseAlpn(true)
-                .setMaxPoolSize(1)
                 .setTrustStoreOptions(new JksOptions().setPassword(PASSWORD).setPath(defaultTruststore()));
     }
 
