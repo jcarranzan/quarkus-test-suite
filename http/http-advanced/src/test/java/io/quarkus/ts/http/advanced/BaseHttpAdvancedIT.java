@@ -39,7 +39,6 @@ import io.quarkus.test.scenarios.annotations.EnabledOnQuarkusVersion;
 import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.ext.web.client.HttpResponse;
 import io.vertx.mutiny.ext.web.client.predicate.ResponsePredicate;
@@ -248,7 +247,7 @@ public abstract class BaseHttpAdvancedIT {
         return new WebClientOptions().setProtocolVersion(HttpVersion.HTTP_2).setSsl(true).setVerifyHost(false)
                 .setUseAlpn(true)
                 .setMaxPoolSize(1)
-                .setTrustStoreOptions(new JksOptions().setPassword(PASSWORD).setPath(defaultTruststore()));
+                .setTrustAll(true);
     }
 
     private String defaultTruststore() {
