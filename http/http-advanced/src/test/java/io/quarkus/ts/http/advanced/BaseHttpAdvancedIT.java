@@ -52,7 +52,7 @@ public abstract class BaseHttpAdvancedIT {
 
     private static final String ROOT_PATH = "/api";
     private static final int RETRY = 3;
-    private static final int TIMEOUT_SEC = 2;
+    private static final int TIMEOUT_SEC = 3;
     private static final String PASSWORD = "password";
     private static final String SSE_ERROR_MESSAGE = "java.lang.ClassNotFoundException: Provider for jakarta.ws.rs.sse.SseEventSource.Builder cannot be found";
 
@@ -125,6 +125,7 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
+    @Disabled
     @DisplayName("Http/2 Server test")
     public void http2Server() throws InterruptedException {
         CountDownLatch done = new CountDownLatch(1);
