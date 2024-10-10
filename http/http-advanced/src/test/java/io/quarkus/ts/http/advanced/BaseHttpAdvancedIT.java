@@ -143,22 +143,50 @@ public abstract class BaseHttpAdvancedIT {
         assertThat(done.getCount(), equalTo(0L));
     }
 
+    /*
+     * @Test
+     *
+     * @DisplayName("Non-application endpoint move to /q/")
+     *
+     * @EnabledOnQuarkusVersion(version = "1\\..*", reason = "Redirection is no longer supported in 2.x")
+     * public void nonAppRedirections() {
+     * List<String> endpoints = Arrays.asList("/openapi", "/swagger-ui", "/metrics/base", "/metrics/application",
+     * "/metrics/vendor", "/metrics", "/health/group", "/health/well", "/health/ready", "/health/live",
+     * "/health");
+     * var app = getApp();
+     * try {
+     * for (String endpoint : endpoints) {
+     * app.given().redirects().follow(false).get(ROOT_PATH + endpoint)
+     * .then().statusCode(HttpStatus.SC_MOVED_PERMANENTLY)
+     * .and().header("Location", containsString("/q" + endpoint));
+     *
+     * app.given().get(ROOT_PATH + endpoint)
+     * .then().statusCode(in(Arrays.asList(HttpStatus.SC_OK, HttpStatus.SC_NO_CONTENT)));
+     * }
+     * } finally {
+     * if (app != null) {
+     * app.close();
+     * }
+     * }
+     * }
+     */
     @Test
-    @DisplayName("Non-application endpoint move to /q/")
+    @DisplayName("Non-application general endpoints redirection to /q/")
     @EnabledOnQuarkusVersion(version = "1\\..*", reason = "Redirection is no longer supported in 2.x")
-    public void nonAppRedirections() {
-        List<String> endpoints = Arrays.asList("/openapi", "/swagger-ui", "/metrics/base", "/metrics/application",
-                "/metrics/vendor", "/metrics", "/health/group", "/health/well", "/health/ready", "/health/live",
-                "/health");
+    public void nonAppGeneralEndpointsRedirections() throws InterruptedException {
+        List<String> generalEndpoints = Arrays.asList("/openapi", "/swagger-ui", "/metrics/base", "/metrics/application",
+                "/metrics/vendor", "/metrics");
+
         var app = getApp();
         try {
-            for (String endpoint : endpoints) {
+            for (String endpoint : generalEndpoints) {
                 app.given().redirects().follow(false).get(ROOT_PATH + endpoint)
                         .then().statusCode(HttpStatus.SC_MOVED_PERMANENTLY)
                         .and().header("Location", containsString("/q" + endpoint));
 
                 app.given().get(ROOT_PATH + endpoint)
                         .then().statusCode(in(Arrays.asList(HttpStatus.SC_OK, HttpStatus.SC_NO_CONTENT)));
+                Thread.sleep(300);
             }
         } finally {
             if (app != null) {
