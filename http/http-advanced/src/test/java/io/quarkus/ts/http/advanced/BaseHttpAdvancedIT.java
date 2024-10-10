@@ -3,7 +3,9 @@ package io.quarkus.ts.http.advanced;
 import static io.quarkus.ts.http.advanced.HelloResource.EVENT_PROPAGATION_WAIT_MS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -11,6 +13,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import jakarta.ws.rs.core.Response;
 
@@ -30,15 +36,21 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.EnabledOnQuarkusVersion;
 import io.quarkus.test.security.certificate.CertificateBuilder;
+import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.HttpVersion;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.JksOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.ext.web.client.HttpResponse;
+import io.vertx.mutiny.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.mutiny.ext.web.client.predicate.ResponsePredicateResult;
 
 public abstract class BaseHttpAdvancedIT {
 
     private static final String ROOT_PATH = "/api";
+    private static final int RETRY = 3;
     private static final int TIMEOUT_SEC = 2;
     private static final String PASSWORD = "password";
     private static final String SSE_ERROR_MESSAGE = "java.lang.ClassNotFoundException: Provider for jakarta.ws.rs.sse.SseEventSource.Builder cannot be found";
@@ -116,55 +128,43 @@ public abstract class BaseHttpAdvancedIT {
      * }
      */
 
-    /*
-     * @Test
-     *
-     * @DisplayName("Http/2 Server test")
-     * public void http2Server() throws InterruptedException {
-     * CountDownLatch done = new CountDownLatch(1);
-     *
-     * getApp().mutiny(defaultVertxHttpClientOptions())
-     * .getAbs(getAppEndpoint() + "/hello")
-     * .expect(ResponsePredicate.create(this::isHttp2x))
-     * .expect(ResponsePredicate.status(Response.Status.OK.getStatusCode()))
-     * .send()
-     * .subscribe()
-     * .with(response -> {
-     * JsonObject body = response.bodyAsJsonObject();
-     * assertEquals("Hello, World!", body.getString("content"));
-     * done.countDown();
-     * }, throwable -> {
-     * fail("Request failed: " + throwable.getMessage());
-     * done.countDown();
-     * });
-     *
-     * if (!done.await(TIMEOUT_SEC, TimeUnit.SECONDS)) {
-     * fail("Test timed out");
-     * }
-     * }
-     */
+    @Test
+    @DisplayName("Http/2 Server test")
+    public void http2Server() throws InterruptedException {
+        CountDownLatch done = new CountDownLatch(1);
+        Uni<JsonObject> content = getApp().mutiny(defaultVertxHttpClientOptions())
+                .getAbs(getAppEndpoint() + "/hello")
+                .expect(ResponsePredicate.create(this::isHttp2x))
+                .expect(ResponsePredicate.status(Response.Status.OK.getStatusCode())).send()
+                .map(HttpResponse::bodyAsJsonObject).ifNoItem().after(Duration.ofSeconds(TIMEOUT_SEC)).fail()
+                .onFailure().retry().atMost(RETRY);
 
-    /*
-     * @Test
-     *
-     * @DisplayName("Non-application endpoint move to /q/")
-     *
-     * @EnabledOnQuarkusVersion(version = "1\\..*", reason = "Redirection is no longer supported in 2.x")
-     * public void nonAppRedirections() {
-     * List<String> endpoints = Arrays.asList("/openapi", "/swagger-ui", "/metrics/base", "/metrics/application",
-     * "/metrics/vendor", "/metrics", "/health/group", "/health/well", "/health/ready", "/health/live",
-     * "/health");
-     *
-     * for (String endpoint : endpoints) {
-     * getApp().given().redirects().follow(false).get(ROOT_PATH + endpoint)
-     * .then().statusCode(HttpStatus.SC_MOVED_PERMANENTLY)
-     * .and().header("Location", containsString("/q" + endpoint));
-     *
-     * getApp().given().get(ROOT_PATH + endpoint)
-     * .then().statusCode(in(Arrays.asList(HttpStatus.SC_OK, HttpStatus.SC_NO_CONTENT)));
-     * }
-     * }
-     */
+        content.subscribe().with(body -> {
+            assertEquals(body.getString("content"), "Hello, World!");
+            done.countDown();
+        });
+
+        done.await(TIMEOUT_SEC, TimeUnit.SECONDS);
+        assertThat(done.getCount(), equalTo(0L));
+    }
+
+    @Test
+    @DisplayName("Non-application endpoint move to /q/")
+    @EnabledOnQuarkusVersion(version = "1\\..*", reason = "Redirection is no longer supported in 2.x")
+    public void nonAppRedirections() {
+        List<String> endpoints = Arrays.asList("/openapi", "/swagger-ui", "/metrics/base", "/metrics/application",
+                "/metrics/vendor", "/metrics", "/health/group", "/health/well", "/health/ready", "/health/live",
+                "/health");
+
+        for (String endpoint : endpoints) {
+            getApp().given().redirects().follow(false).get(ROOT_PATH + endpoint)
+                    .then().statusCode(HttpStatus.SC_MOVED_PERMANENTLY)
+                    .and().header("Location", containsString("/q" + endpoint));
+
+            getApp().given().get(ROOT_PATH + endpoint)
+                    .then().statusCode(in(Arrays.asList(HttpStatus.SC_OK, HttpStatus.SC_NO_CONTENT)));
+        }
+    }
 
     @Test
     public void microprofileHttpClientRedirection() {
@@ -249,8 +249,7 @@ public abstract class BaseHttpAdvancedIT {
     private WebClientOptions defaultVertxHttpClientOptions() {
         return new WebClientOptions().setProtocolVersion(HttpVersion.HTTP_2).setSsl(true).setVerifyHost(false)
                 .setUseAlpn(true)
-                .setMaxPoolSize(1)
-                .setTrustAll(true);
+                .setTrustStoreOptions(new JksOptions().setPassword(PASSWORD).setPath(defaultTruststore()));
     }
 
     private String defaultTruststore() {
