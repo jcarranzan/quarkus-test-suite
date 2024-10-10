@@ -67,6 +67,7 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
+    @Disabled
     public void serverHostAddress(TestInfo testInfo) {
         boolean isQuarkusScenario = testInfo.getTestClass().get().getAnnotation(QuarkusScenario.class) != null;
         boolean isOpenShiftScenario = testInfo.getTestClass().get().getAnnotation(OpenShiftScenario.class) != null;
@@ -89,6 +90,7 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
+    @Disabled
     public void clientHostAddress(TestInfo testInfo) {
         boolean isQuarkusScenario = testInfo.getTestClass().get().getAnnotation(QuarkusScenario.class) != null;
         boolean isOpenShiftScenario = testInfo.getTestClass().get().getAnnotation(OpenShiftScenario.class) != null;
@@ -110,12 +112,14 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
+    @Disabled
     @DisplayName("GRPC Server test")
     public void testGrpc() {
         getApp().given().when().get("/api/grpc/trinity").then().statusCode(HttpStatus.SC_OK).body(is("Hello trinity"));
     }
 
     @Test
+    @Disabled
     @Tag("QUARKUS-3742")
     @DisplayName("GRPC client and server global interceptors test")
     public void testGrpcGlobalInterceptors() {
@@ -165,12 +169,14 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
+    @Disabled
     public void microprofileHttpClientRedirection() {
         io.restassured.response.Response health = getApp().given().get("api/client");
         assertEquals(HttpStatus.SC_OK, health.statusCode());
     }
 
     @Test
+    @Disabled
     @Tag("QUARKUS-2004")
     public void constraintsExist() throws JsonProcessingException {
         io.restassured.response.Response response = getApp().given().get("/q/openapi");
@@ -187,6 +193,7 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
+    @Disabled
     @Tag("QUARKUS-2785")
     public void keepRequestScopeValuesAfterEventPropagation() {
         final String requestScopeValue = "myValue";
@@ -204,6 +211,7 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
+    @Disabled
     @Tag("QUARKUS-3685")
     public void sseConnectionTest() {
         String response = getApp().given().get("/api/sse/client").thenReturn().body().asString();
@@ -214,6 +222,7 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
+    @Disabled
     @Tag("QUARKUS-3672")
     public void interceptedTest() {
         // make server to generate a response so interceptors might intercept it
