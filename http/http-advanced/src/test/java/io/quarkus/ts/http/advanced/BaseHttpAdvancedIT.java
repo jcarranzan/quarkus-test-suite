@@ -5,7 +5,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -13,8 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -36,7 +33,6 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.EnabledOnQuarkusVersion;
 import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.HttpVersion;
@@ -108,25 +104,20 @@ public abstract class BaseHttpAdvancedIT {
         }
     }
 
-    /*
-     * @Test
-     *
-     * @DisplayName("GRPC Server test")
-     * public void testGrpc() {
-     * getApp().given().when().get("/api/grpc/trinity").then().statusCode(HttpStatus.SC_OK).body(is("Hello trinity"));
-     * }
-     *
-     * @Test
-     *
-     * @Tag("QUARKUS-3742")
-     *
-     * @DisplayName("GRPC client and server global interceptors test")
-     * public void testGrpcGlobalInterceptors() {
-     * getApp().given().when().get("/api/grpc/global/interceptors").then().statusCode(HttpStatus.SC_OK)
-     * .body(containsString("ClientInterceptors$ClassTarget"),
-     * containsString("ClientInterceptors$MethodTarget"));
-     * }
-     */
+    @Test
+    @DisplayName("GRPC Server test")
+    public void testGrpc() {
+        getApp().given().when().get("/api/grpc/trinity").then().statusCode(HttpStatus.SC_OK).body(is("Hello trinity"));
+    }
+
+    @Test
+    @Tag("QUARKUS-3742")
+    @DisplayName("GRPC client and server global interceptors test")
+    public void testGrpcGlobalInterceptors() {
+        getApp().given().when().get("/api/grpc/global/interceptors").then().statusCode(HttpStatus.SC_OK)
+                .body(containsString("ClientInterceptors$ClassTarget"),
+                        containsString("ClientInterceptors$MethodTarget"));
+    }
 
     @Test
     @DisplayName("Http/2 Server test")
@@ -148,23 +139,27 @@ public abstract class BaseHttpAdvancedIT {
         assertThat(done.getCount(), equalTo(0L));
     }
 
-    @Test
-    @DisplayName("Non-application endpoint move to /q/")
-    @EnabledOnQuarkusVersion(version = "1\\..*", reason = "Redirection is no longer supported in 2.x")
-    public void nonAppRedirections() {
-        List<String> endpoints = Arrays.asList("/openapi", "/swagger-ui", "/metrics/base", "/metrics/application",
-                "/metrics/vendor", "/metrics", "/health/group", "/health/well", "/health/ready", "/health/live",
-                "/health");
-
-        for (String endpoint : endpoints) {
-            getApp().given().redirects().follow(false).get(ROOT_PATH + endpoint)
-                    .then().statusCode(HttpStatus.SC_MOVED_PERMANENTLY)
-                    .and().header("Location", containsString("/q" + endpoint));
-
-            getApp().given().get(ROOT_PATH + endpoint)
-                    .then().statusCode(in(Arrays.asList(HttpStatus.SC_OK, HttpStatus.SC_NO_CONTENT)));
-        }
-    }
+    /*
+     * @Test
+     *
+     * @DisplayName("Non-application endpoint move to /q/")
+     *
+     * @EnabledOnQuarkusVersion(version = "1\\..*", reason = "Redirection is no longer supported in 2.x")
+     * public void nonAppRedirections() {
+     * List<String> endpoints = Arrays.asList("/openapi", "/swagger-ui", "/metrics/base", "/metrics/application",
+     * "/metrics/vendor", "/metrics", "/health/group", "/health/well", "/health/ready", "/health/live",
+     * "/health");
+     *
+     * for (String endpoint : endpoints) {
+     * getApp().given().redirects().follow(false).get(ROOT_PATH + endpoint)
+     * .then().statusCode(HttpStatus.SC_MOVED_PERMANENTLY)
+     * .and().header("Location", containsString("/q" + endpoint));
+     *
+     * getApp().given().get(ROOT_PATH + endpoint)
+     * .then().statusCode(in(Arrays.asList(HttpStatus.SC_OK, HttpStatus.SC_NO_CONTENT)));
+     * }
+     * }
+     */
 
     @Test
     public void microprofileHttpClientRedirection() {
