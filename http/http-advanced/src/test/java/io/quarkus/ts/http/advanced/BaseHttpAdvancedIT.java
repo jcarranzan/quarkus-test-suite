@@ -22,6 +22,7 @@ import jakarta.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -143,55 +144,22 @@ public abstract class BaseHttpAdvancedIT {
         assertThat(done.getCount(), equalTo(0L));
     }
 
-    /*
-     * @Test
-     *
-     * @DisplayName("Non-application endpoint move to /q/")
-     *
-     * @EnabledOnQuarkusVersion(version = "1\\..*", reason = "Redirection is no longer supported in 2.x")
-     * public void nonAppRedirections() {
-     * List<String> endpoints = Arrays.asList("/openapi", "/swagger-ui", "/metrics/base", "/metrics/application",
-     * "/metrics/vendor", "/metrics", "/health/group", "/health/well", "/health/ready", "/health/live",
-     * "/health");
-     * var app = getApp();
-     * try {
-     * for (String endpoint : endpoints) {
-     * app.given().redirects().follow(false).get(ROOT_PATH + endpoint)
-     * .then().statusCode(HttpStatus.SC_MOVED_PERMANENTLY)
-     * .and().header("Location", containsString("/q" + endpoint));
-     *
-     * app.given().get(ROOT_PATH + endpoint)
-     * .then().statusCode(in(Arrays.asList(HttpStatus.SC_OK, HttpStatus.SC_NO_CONTENT)));
-     * }
-     * } finally {
-     * if (app != null) {
-     * app.close();
-     * }
-     * }
-     * }
-     */
     @Test
+    @Disabled
     @DisplayName("Non-application general endpoints redirection to /q/")
     @EnabledOnQuarkusVersion(version = "1\\..*", reason = "Redirection is no longer supported in 2.x")
     public void nonAppGeneralEndpointsRedirections() throws InterruptedException {
-        List<String> generalEndpoints = Arrays.asList("/openapi", "/swagger-ui", "/metrics/base", "/metrics/application",
-                "/metrics/vendor", "/metrics");
+        List<String> endpoints = Arrays.asList("/openapi", "/swagger-ui", "/metrics/base", "/metrics/application",
+                "/metrics/vendor", "/metrics", "/health/group", "/health/well", "/health/ready", "/health/live",
+                "/health");
 
-        var app = getApp();
-        try {
-            for (String endpoint : generalEndpoints) {
-                app.given().redirects().follow(false).get(ROOT_PATH + endpoint)
-                        .then().statusCode(HttpStatus.SC_MOVED_PERMANENTLY)
-                        .and().header("Location", containsString("/q" + endpoint));
+        for (String endpoint : endpoints) {
+            getApp().given().redirects().follow(false).get(ROOT_PATH + endpoint)
+                    .then().statusCode(HttpStatus.SC_MOVED_PERMANENTLY)
+                    .and().header("Location", containsString("/q" + endpoint));
 
-                app.given().get(ROOT_PATH + endpoint)
-                        .then().statusCode(in(Arrays.asList(HttpStatus.SC_OK, HttpStatus.SC_NO_CONTENT)));
-                Thread.sleep(300);
-            }
-        } finally {
-            if (app != null) {
-                app.close();
-            }
+            getApp().given().get(ROOT_PATH + endpoint)
+                    .then().statusCode(in(Arrays.asList(HttpStatus.SC_OK, HttpStatus.SC_NO_CONTENT)));
         }
     }
 
