@@ -67,7 +67,6 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
-    @Disabled
     public void serverHostAddress(TestInfo testInfo) {
         boolean isQuarkusScenario = testInfo.getTestClass().get().getAnnotation(QuarkusScenario.class) != null;
         boolean isOpenShiftScenario = testInfo.getTestClass().get().getAnnotation(OpenShiftScenario.class) != null;
@@ -90,7 +89,6 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
-    @Disabled
     public void clientHostAddress(TestInfo testInfo) {
         boolean isQuarkusScenario = testInfo.getTestClass().get().getAnnotation(QuarkusScenario.class) != null;
         boolean isOpenShiftScenario = testInfo.getTestClass().get().getAnnotation(OpenShiftScenario.class) != null;
@@ -112,14 +110,12 @@ public abstract class BaseHttpAdvancedIT {
     }
 
     @Test
-    @Disabled
     @DisplayName("GRPC Server test")
     public void testGrpc() {
         getApp().given().when().get("/api/grpc/trinity").then().statusCode(HttpStatus.SC_OK).body(is("Hello trinity"));
     }
 
     @Test
-    @Disabled
     @Tag("QUARKUS-3742")
     @DisplayName("GRPC client and server global interceptors test")
     public void testGrpcGlobalInterceptors() {
