@@ -56,7 +56,7 @@ public class HttpAdvancedIT extends BaseHttpAdvancedIT {
         }
     }
 
-    @KeycloakContainer(command = { "start-dev", "--import-realm", "--hostname-strict=false" }, memoryLimitMiB = 512)
+    @KeycloakContainer(command = { "start-dev", "--import-realm", "--hostname-strict=false" }, memoryLimitMiB = 2000)
     static KeycloakService keycloak = new KeycloakService(DEFAULT_REALM_FILE, DEFAULT_REALM, DEFAULT_REALM_BASE_PATH);
 
     @QuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, configureHttpServer = true, useTlsRegistry = false))
