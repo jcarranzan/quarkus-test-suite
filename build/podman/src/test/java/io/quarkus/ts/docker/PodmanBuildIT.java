@@ -15,6 +15,7 @@ import io.quarkus.test.utils.DockerUtils;
 
 @QuarkusScenario
 @EnabledIfEnvironmentVariable(named = "DOCKER_HOST", matches = ".*podman.*")
+@EnabledIfEnvironmentVariable(named = "PODMAN_AVAILABLE", matches = "true")
 /**
  * We run the tests only when podman is enabled and does not pretend to be Docker
  * since otherwise we won't be able to distinguish between the extension being broken
