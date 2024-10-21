@@ -23,40 +23,39 @@ public class HttpAdvancedIT extends BaseHttpAdvancedIT {
         printSystemMemoryInfo();
     }
 
-    private static void printSystemMemoryInfo() {
+    public static void printSystemMemoryInfo() {
         try {
-            // Get the OperatingSystemMXBean instance
+            // JVM Memory Info
+            Runtime runtime = Runtime.getRuntime();
+            long freeMemory = runtime.freeMemory() / (1024 * 1024);
+            long totalMemory = runtime.totalMemory() / (1024 * 1024);
+            long maxMemory = runtime.maxMemory() / (1024 * 1024);
+            System.out.println("=== JVM Memory Info ===");
+            System.out.println("Free Memory: " + freeMemory + " MB");
+            System.out.println("Total Memory: " + totalMemory + " MB");
+            System.out.println("Max Memory: " + maxMemory + " MB");
+
+            // System Memory Info
             OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
-
-            // Get total and free physical memory
-            long totalPhysicalMemorySize = osBean.getTotalPhysicalMemorySize();
-            long freePhysicalMemorySize = osBean.getFreePhysicalMemorySize();
-
-            // Convert bytes to megabytes
-            long totalPhysicalMemorySizeMB = totalPhysicalMemorySize / (1024 * 1024);
-            long freePhysicalMemorySizeMB = freePhysicalMemorySize / (1024 * 1024);
-
+            long totalPhysicalMemorySize = osBean.getTotalPhysicalMemorySize() / (1024 * 1024);
+            long freePhysicalMemorySize = osBean.getFreePhysicalMemorySize() / (1024 * 1024);
             System.out.println("=== System Memory Info ===");
-            System.out.println("Total Physical Memory: " + totalPhysicalMemorySizeMB + " MB");
-            System.out.println("Free Physical Memory: " + freePhysicalMemorySizeMB + " MB");
+            System.out.println("Total Physical Memory: " + totalPhysicalMemorySize + " MB");
+            System.out.println("Free Physical Memory: " + freePhysicalMemorySize + " MB");
 
-            // Get total and free disk space
+            // Disk Space Info
             File root = new File("/");
-            long totalDiskSpace = root.getTotalSpace();
-            long freeDiskSpace = root.getFreeSpace();
-
-            long totalDiskSpaceMB = totalDiskSpace / (1024 * 1024);
-            long freeDiskSpaceMB = freeDiskSpace / (1024 * 1024);
-
+            long totalDiskSpace = root.getTotalSpace() / (1024 * 1024);
+            long freeDiskSpace = root.getFreeSpace() / (1024 * 1024);
             System.out.println("=== Disk Space Info ===");
-            System.out.println("Total Disk Space: " + totalDiskSpaceMB + " MB");
-            System.out.println("Free Disk Space: " + freeDiskSpaceMB + " MB");
+            System.out.println("Total Disk Space: " + totalDiskSpace + " MB");
+            System.out.println("Free Disk Space: " + freeDiskSpace + " MB");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    @KeycloakContainer(command = { "start-dev", "--import-realm", "--hostname-strict=false" }, memoryLimitMiB = 2000)
+    @KeycloakContainer(command = { "start-dev", "--import-realm", "--hostname-strict=false" }, memoryLimitMiB = 1024)
     static KeycloakService keycloak = new KeycloakService(DEFAULT_REALM_FILE, DEFAULT_REALM, DEFAULT_REALM_BASE_PATH);
 
     @QuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, configureHttpServer = true, useTlsRegistry = false))
