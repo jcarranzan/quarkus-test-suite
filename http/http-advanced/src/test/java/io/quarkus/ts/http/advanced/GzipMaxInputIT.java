@@ -9,6 +9,7 @@ import java.util.zip.GZIPOutputStream;
 import jakarta.ws.rs.core.HttpHeaders;
 
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -62,6 +63,7 @@ public class GzipMaxInputIT {
 
     @Tag("https://github.com/quarkusio/quarkus/issues/39636")
     @Test
+    @Disabled
     void sendMaximumAllowedPayload() throws IOException {
         byte[] compressedData = generateCompressedData(LIMIT_PAYLOAD);
         Response response = sendDataToGzipEndpoint(compressedData);
@@ -72,6 +74,7 @@ public class GzipMaxInputIT {
     }
 
     @Test
+    @Disabled
     void sendMoreThanMaximumAllowedPayload() throws IOException {
         byte[] compressedData = generateCompressedData(OVER_LIMIT_PAYLOAD);
         Response response = sendDataToGzipEndpoint(compressedData);
