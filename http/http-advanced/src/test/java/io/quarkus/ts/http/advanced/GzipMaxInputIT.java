@@ -67,6 +67,7 @@ public class GzipMaxInputIT {
         Response response = sendStringDataToGzipEndpoint(invalid_value);
         assertEquals(HttpStatus.SC_BAD_REQUEST, response.statusCode(),
                 "Invalid data as this void string should result in 400 BAD_REQUEST response");
+        logMemoryUsage("After sendInvalidContent Test");
     }
 
     @Test
@@ -75,6 +76,7 @@ public class GzipMaxInputIT {
         Response response = sendDataToGzipEndpoint(compressedData);
         assertEquals(HttpStatus.SC_OK, response.statusCode(),
                 "The response should be 200 OK because the compression returns 2 bytes");
+        logMemoryUsage("After sendZeroBytesPayload Test");
     }
 
     @Test
@@ -83,6 +85,7 @@ public class GzipMaxInputIT {
         Response response = sendDataToGzipEndpoint(compressedData);
         assertEquals(HttpStatus.SC_OK, response.statusCode(),
                 "The response should be 200 OK because sending just 512 bytes");
+        logMemoryUsage("After sendPayloadBelowMaxInputLimit Test");
     }
 
     @Tag("https://github.com/quarkusio/quarkus/issues/39636")
@@ -94,6 +97,7 @@ public class GzipMaxInputIT {
                 "The response should be 200 OK because sending just the limit payload configured using " +
                         "quarkus.resteasy.gzip.max-input=100M. This fails if the suffix format parsing is not " +
                         "working and RESTEasy falls back to its default which is 10M");
+        logMemoryUsage("After sendMaximumAllowedPayload Test");
     }
 
     @Test
@@ -102,6 +106,7 @@ public class GzipMaxInputIT {
         Response response = sendDataToGzipEndpoint(compressedData);
         assertEquals(HttpStatus.SC_REQUEST_TOO_LONG, response.statusCode(),
                 "The response should be 413 REQUEST_TOO_LONG when sending larger payload than the limit");
+        logMemoryUsage("After sendMoreThanMaximumAllowedPayload Test");
     }
 
     private Response sendDataToGzipEndpoint(byte[] data) {
