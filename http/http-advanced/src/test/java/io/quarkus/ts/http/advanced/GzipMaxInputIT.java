@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.util.zip.GZIPOutputStream;
 
+import com.sun.management.OperatingSystemMXBean;
 import jakarta.ws.rs.core.HttpHeaders;
 
 import org.apache.http.HttpStatus;
@@ -26,6 +28,8 @@ public class GzipMaxInputIT {
     final byte[] LIMIT_PAYLOAD = new byte[100 * 1024 * 1024];
     final byte[] OVER_LIMIT_PAYLOAD = new byte[200 * 1024 * 1024];
 
+    private static final long BYTES_IN_MB = 1024 * 1024;
+
     /**
      *
      * Tests are checking server response on different size of sent payload
@@ -37,6 +41,27 @@ public class GzipMaxInputIT {
     @QuarkusApplication(classes = { GzipResource.class }, properties = "gzip.properties")
     static RestService app = new RestService();
 
+    private void logMemoryUsage(String message) {
+        Runtime runtime = Runtime.getRuntime();
+        long freeMemory = runtime.freeMemory() / BYTES_IN_MB;
+        long totalMemory = runtime.totalMemory() / BYTES_IN_MB;
+        long maxMemory = runtime.maxMemory() / BYTES_IN_MB;
+
+        System.out.println("[" + message + "]");
+        System.out.println("=== JVM Memory Info ===");
+        System.out.println("Free Memory: " + freeMemory + " MB");
+        System.out.println("Total Memory: " + totalMemory + " MB");
+        System.out.println("Max Memory: " + maxMemory + " MB");
+
+        OperatingSystemMXBean osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+        long totalPhysicalMemorySize = osBean.getTotalPhysicalMemorySize() / BYTES_IN_MB;
+        long freePhysicalMemorySize = osBean.getFreePhysicalMemorySize() / BYTES_IN_MB;
+
+        System.out.println("=== System Memory Info ===");
+        System.out.println("Total Physical Memory: " + totalPhysicalMemorySize + " MB");
+        System.out.println("Free Physical Memory: " + freePhysicalMemorySize + " MB");
+        System.out.println("--------------------------------------------------");
+    }
     @Test
     void sendInvalidContent() {
         Response response = sendStringDataToGzipEndpoint(invalid_value);
