@@ -19,7 +19,7 @@ import io.quarkus.test.util.IQuarkusCLIAppManager;
 
 @Tag("quarkus-cli")
 public class QuarkusCli35to315UpdateIT extends AbstractQuarkusCliUpdateIT {
-    private static final DefaultArtifactVersion oldVersion = new DefaultArtifactVersion("3.5");
+    private static final DefaultArtifactVersion oldVersion = new DefaultArtifactVersion("3.8");
     private static final DefaultArtifactVersion newVersion = new DefaultArtifactVersion("3.15");
 
     public QuarkusCli35to315UpdateIT() {
