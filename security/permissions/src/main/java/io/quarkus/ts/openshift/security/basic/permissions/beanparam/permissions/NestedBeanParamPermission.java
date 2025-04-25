@@ -12,7 +12,7 @@ public class NestedBeanParamPermission extends BasicPermission {
     private final String principalName;
 
     public NestedBeanParamPermission(String permissionName, String id, String name,
-                                     String resourceId, String resourceType, String principalName) {
+            String resourceId, String resourceType, String principalName) {
         super(permissionName);
         this.id = id;
         this.name = name;

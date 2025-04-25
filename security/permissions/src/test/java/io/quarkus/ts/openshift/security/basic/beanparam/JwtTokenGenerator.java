@@ -16,7 +16,7 @@ public class JwtTokenGenerator {
      */
     public static String generateToken(String username, String... roles) {
         Set<String> roleSet = new HashSet<>(Arrays.asList(roles));
-        return Jwt.issuer("https://example.com/issuer")
+        return Jwt.issuer("https://my.auth.server/")
                 .upn(username)
                 .subject(username)
                 .groups(roleSet)
