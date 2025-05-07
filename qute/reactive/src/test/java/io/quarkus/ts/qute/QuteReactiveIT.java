@@ -308,4 +308,17 @@ public class QuteReactiveIT {
                 .statusCode(200)
                 .body(is("io.quarkus.ts.qute.Book$quarkusjacksondeserializer"));
     }
+
+    @Test
+    void testTemplateRecordWithFragments() {
+        Response response = app.given().get("/record-order/test");
+        assertEquals(200, response.statusCode());
+        String content = response.body().asString();
+
+        assertTrue(content.contains("Name: Test User"));
+        assertTrue(content.contains("ID: 123"));
+        assertTrue(content.contains("Order Number: 789"));
+        assertTrue(content.contains("Is Active: true"));
+        assertTrue(content.contains("Fragment Order: 789 then Test User then true then 123"));
+    }
 }

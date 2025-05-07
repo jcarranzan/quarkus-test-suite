@@ -1,0 +1,14 @@
+<div>
+    <p>Is Active: {isActive}</p>
+    <p>Order Number: {orderNumber}</p>
+
+    {#fragment id=user_details_complex}
+    <div class="user-details-complex">
+        <p>Details: Name: {name}, ID: {id}, Active: {isActive}, OrderNo: {orderNumber}</p>
+        <p>Fragment Order: {orderNumber} then {name} then {isActive} then {id}</p>
+    </div>
+    {/fragment}
+
+    <h1>Name: {name}</h1>
+    <p>ID: {id}</p>
+</div>
