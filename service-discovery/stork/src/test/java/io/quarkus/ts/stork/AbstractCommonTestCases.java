@@ -8,8 +8,6 @@ import org.apache.http.HttpStatus;
 import io.quarkus.test.bootstrap.RestService;
 import io.restassured.response.ValidatableResponse;
 
-import junit.framework.AssertionFailedError;
-
 public class AbstractCommonTestCases {
 
     public static final String PREFIX = "ping-";
@@ -29,7 +27,7 @@ public class AbstractCommonTestCases {
         try (ServerSocket socket = new ServerSocket(0)) {
             return String.valueOf(socket.getLocalPort());
         } catch (IOException e) {
-            throw new AssertionFailedError();
+            throw new RuntimeException("Failed to get available port", e);
         }
     }
 }
