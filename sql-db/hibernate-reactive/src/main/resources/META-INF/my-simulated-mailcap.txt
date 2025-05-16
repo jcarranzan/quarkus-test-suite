@@ -1,0 +1,1 @@
+command=io.quarkus.ts.hibernate.reactive.validation.reflect.SimulatedMailcapCommandTarget
