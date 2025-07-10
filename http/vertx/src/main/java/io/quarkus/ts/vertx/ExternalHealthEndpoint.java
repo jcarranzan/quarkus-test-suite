@@ -1,12 +1,12 @@
 package io.quarkus.ts.vertx;
 
+import java.util.List;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
-
-import org.jboss.logging.MDC;
 
 import io.smallrye.health.SmallRyeHealthReporter;
 
@@ -14,22 +14,27 @@ import io.smallrye.health.SmallRyeHealthReporter;
 @ApplicationScoped
 public class ExternalHealthEndpoint {
 
+    public static final String LOGGER_NAME = "test-logger";
     public static final String MDC_KEY = "endpoint.context";
-    public static final String MDC_VALUE = "value-from-endpoint";
+    public static final String MDC_VALUE_PREFIX = "value-from-endpoint-";
 
     @Inject
     SmallRyeHealthReporter healthReporter;
 
+    @Inject
+    InMemoryLogHandler inMemoryLogHandler;
+
     @GET
     public Response triggerHealthChecks() {
-        MDC.put(MDC_KEY, MDC_VALUE);
+        System.out.println("PPPPPPPPPPPPPPPPPPPPPPPPPPP");
 
-        System.out.println("DEBUG: MDC set in endpoint: " + MDC.get(MDC_KEY));
-
-        try {
-            return Response.ok(healthReporter.getHealth().getPayload()).build();
-        } finally {
-            MDC.remove(MDC_KEY);
-        }
+        return Response.ok(healthReporter.getHealth().getPayload()).build();
     }
+
+    @GET
+    @Path("/log-records")
+    public List<String> logRecords() {
+        return inMemoryLogHandler.getRecords();
+    }
+
 }

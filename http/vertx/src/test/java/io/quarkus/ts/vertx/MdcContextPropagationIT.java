@@ -31,9 +31,10 @@ public class MdcContextPropagationIT {
                 .then()
                 .statusCode(200);
 
-        List<String> records = InMemoryLogHandler.getRecords();
+        List<String> records = given().when().get("/external-health/log-records")
+                .then().statusCode(200).extract().body().jsonPath().getList(".", String.class);
 
-        System.out.println("=== Captured records ===");
+        System.out.println("=== Captured records === " + records.size());
         records.forEach(record -> System.out.println("Record: " + record));
         System.out.println("=== End of records ===");
 

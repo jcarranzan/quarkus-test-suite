@@ -1,29 +1,38 @@
 package io.quarkus.ts.vertx;
 
-import java.util.logging.Formatter;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.ws.rs.Produces;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
 
-import org.jboss.logmanager.formatters.PatternFormatter;
+import io.quarkus.bootstrap.logging.InitialConfigurator;
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
 
 @ApplicationScoped
 public class InMemoryLogHandlerProducer {
-    private static final String LOG_FORMAT = "endpoint_context=%X{endpoint.context} %s%n";
+
+    public volatile boolean initialized = false;
 
     @Produces
-    public InMemoryLogHandler createHandler() {
-        InMemoryLogHandler handler = new InMemoryLogHandler();
-        Formatter formatter = new PatternFormatter(LOG_FORMAT);
-        handler.setFormatter(formatter);
-        handler.setLevel(Level.INFO);
+    @Singleton
+    public InMemoryLogHandler inMemoryLogHandler() {
+        return new InMemoryLogHandler();
+    }
 
-        Logger rootLogger = LogManager.getLogManager().getLogger("");
-        rootLogger.addHandler(handler);
+    public boolean isInitialized() {
+        return initialized;
+    }
 
-        return handler;
+    void onStart(@Observes StartupEvent ev, InMemoryLogHandler inMemoryLogHandler) {
+        System.out.println("Starting " + inMemoryLogHandler.getClass().getSimpleName());
+        InitialConfigurator.DELAYED_HANDLER.addHandler(inMemoryLogHandler);
+        initialized = true;
+    }
+
+    void onStop(@Observes ShutdownEvent ev, InMemoryLogHandler inMemoryLogHandler) {
+        System.out.println("Stopping " + inMemoryLogHandler.getClass().getSimpleName());
+        initialized = false;
+        InitialConfigurator.DELAYED_HANDLER.removeHandler(inMemoryLogHandler);
     }
 }
