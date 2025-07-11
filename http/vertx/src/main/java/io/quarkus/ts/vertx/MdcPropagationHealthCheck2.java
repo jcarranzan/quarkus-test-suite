@@ -18,7 +18,7 @@ public class MdcPropagationHealthCheck2 implements HealthCheck {
     public HealthCheckResponse call() {
         MDC.put(ExternalHealthEndpoint.MDC_KEY, ExternalHealthEndpoint.MDC_VALUE_PREFIX + getClass().getSimpleName());
         Object mdcValue = MDC.get(ExternalHealthEndpoint.MDC_KEY);
-        System.out.println("DEBUG: MDC in health check: " + mdcValue);
+        LOG.info("MDC in health check: " + mdcValue);
 
         LOG.error("Test log with MDC");
 

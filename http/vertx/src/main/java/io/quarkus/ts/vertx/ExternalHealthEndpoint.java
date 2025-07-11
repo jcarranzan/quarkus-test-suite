@@ -8,6 +8,8 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 
+import org.jboss.logmanager.MDC;
+
 import io.smallrye.health.SmallRyeHealthReporter;
 
 @Path("/external-health")
@@ -26,9 +28,13 @@ public class ExternalHealthEndpoint {
 
     @GET
     public Response triggerHealthChecks() {
-        System.out.println("PPPPPPPPPPPPPPPPPPPPPPPPPPP");
         InMemoryLogHandler.reset();
+        MDC.put(MDC_KEY, MDC_VALUE_PREFIX + "ExternalEndpoint");
+        // access the MDC context before calling the health reporter to cause the problem
+        MDC.clear();
+        // call the health reporter
         return Response.ok(healthReporter.getHealth().getPayload()).build();
+
     }
 
     @GET

@@ -13,12 +13,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 
-import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.scenarios.QuarkusScenario;
 
 @Tag("https://github.com/quarkusio/quarkus/pull/48057/")
 @QuarkusScenario
-@TestProfile(MdcTestProfile.class)
 public class MdcContextPropagationIT {
 
     @BeforeEach
@@ -72,4 +70,5 @@ public class MdcContextPropagationIT {
             });
         });
     }
+
 }
