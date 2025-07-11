@@ -27,14 +27,14 @@ public class ExternalHealthEndpoint {
     @GET
     public Response triggerHealthChecks() {
         System.out.println("PPPPPPPPPPPPPPPPPPPPPPPPPPP");
-
+        InMemoryLogHandler.reset();
         return Response.ok(healthReporter.getHealth().getPayload()).build();
     }
 
     @GET
     @Path("/log-records")
     public List<String> logRecords() {
-        return inMemoryLogHandler.getRecords();
+        return inMemoryLogHandler.logRecords();
     }
 
 }

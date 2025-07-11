@@ -26,24 +26,20 @@ public class InMemoryLogHandler extends ExtHandler {
 
     @Override
     public void publish(LogRecord record) {
-        System.out.println(
-                "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX " + getFormatter().format(record));
-        recordList.add(record.getMessage());
         String loggerName = record.getLoggerName();
-        //        if (loggerName != null && (loggerName.equals("mdc-logger"))) {
-        final String formatted;
-        final Formatter formatter = getFormatter();
-        try {
-            formatted = formatter.format(record);
-        } catch (Exception ex) {
-            reportError("Formatting error", ex, ErrorManager.FORMAT_FAILURE);
-            return;
+        if (loggerName != null && loggerName.equals(ExternalHealthEndpoint.LOGGER_NAME)) {
+            final String formatted;
+            final Formatter formatter = getFormatter();
+            try {
+                formatted = formatter.format(record);
+            } catch (Exception ex) {
+                reportError("Formatting error", ex, ErrorManager.FORMAT_FAILURE);
+                return;
+            }
+            if (!formatted.isEmpty()) {
+                recordList.add(formatted);
+            }
         }
-        if (formatted.isEmpty()) {
-            return;
-        }
-        recordList.add(formatted);
-        //        }
     }
 
     @Override
@@ -53,12 +49,10 @@ public class InMemoryLogHandler extends ExtHandler {
 
     @Override
     public void flush() {
-
     }
 
     @Override
     public void close() throws SecurityException {
-
     }
 
 }
