@@ -1,8 +1,12 @@
 package io.quarkus.ts.security.keycloak.oidcclient.extended.restclient;
 
+import java.util.Set;
+
 import org.jboss.logging.Logger;
 
 import io.quarkus.test.bootstrap.KeycloakService;
+import io.restassured.RestAssured;
+import io.vertx.core.json.JsonObject;
 
 final class TokenUtils {
 
@@ -33,6 +37,23 @@ final class TokenUtils {
             }
             throw e;
         }
+    }
+
+    public static String getAccessTokenWithAcr(Set<String> acrValues) {
+        return getAccessTokenVerifiedWithOidcServer(acrValues, null);
+    }
+
+    private static String getAccessTokenVerifiedWithOidcServer(Set<String> acrValues, Long authTime) {
+        // get access token from simple OIDC resource
+        String json = RestAssured
+                .given()
+                .queryParam("auth_time", authTime == null ? "" : Long.toString(authTime))
+                .queryParam("acr", acrValues == null ? "" : String.join(",", acrValues))
+                .when()
+                .post("/step-up/accesstoken-with-acr")
+                .body().asString();
+        JsonObject object = new JsonObject(json);
+        return object.getString("access_token");
     }
 
 }
