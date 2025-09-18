@@ -1,7 +1,5 @@
 package io.quarkus.ts.security.keycloak.oidcclient.extended.restclient;
 
-import java.util.Set;
-
 import org.apache.http.HttpStatus;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.Test;
@@ -16,14 +14,14 @@ public abstract class AbstractStepUpAuthenticationIT {
     @LookupService
     static KeycloakService keycloak;
 
-    @QuarkusApplication
+    @QuarkusApplication(properties = "stepup.properties")
     static RestService app = new RestService()
             .withProperty("quarkus.oidc.auth-server-url", () -> keycloak.getRealmUrl())
             .withProperties(() -> keycloak.getTlsProperties());
 
     @Test
     public void testSingleAcrSuccess() {
-        String tokenWithAcr = TokenUtils.getAccessTokenWithAcr(Set.of("acr-level-1"));
+        String tokenWithAcr = TokenUtils.getAccessTokenWithAcr(keycloak, "acr-level-1");
         app.given()
                 .auth().oauth2(tokenWithAcr)
                 .when()

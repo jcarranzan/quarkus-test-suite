@@ -1,0 +1,133 @@
+{
+  "realm": "test-realm",
+  "enabled": true,
+  "sslRequired": "none",
+  "browserFlow": "browser-step-up",
+  "users": [
+    {
+      "username": "test-user",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-user"
+        }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "test-application-client",
+      "secret": "test-application-client-secret",
+      "enabled": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "attributes": {
+        "acr.loa.map": "{\"acr-level-1\": 1, \"acr-level-2\": 2}"
+      },
+      "defaultClientScopes": ["openid", "acr"]
+    }
+  ],
+  "authenticationFlows": [
+    {
+      "alias": "browser-step-up",
+      "description": "Browser flow with step-up authentication",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-cookie",
+          "authenticatorFlow": false,
+          "requirement": "ALTERNATIVE",
+          "priority": 10,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorFlow": true,
+          "requirement": "ALTERNATIVE",
+          "priority": 20,
+          "flowAlias": "forms-step-up",
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "forms-step-up",
+      "description": "Forms with step-up",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticatorFlow": true,
+          "requirement": "CONDITIONAL",
+          "priority": 10,
+          "flowAlias": "level-1-flow",
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
+      "alias": "level-1-flow",
+      "description": "Level 1 authentication",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-level-of-authentication",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "authenticatorConfig": "level-1-config",
+          "userSetupAllowed": false
+        },
+        {
+          "authenticator": "auth-username-password-form",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "userSetupAllowed": false
+        }
+      ]
+    }
+  ],
+  "authenticatorConfig": [
+    {
+      "id": "level-1-config-id",
+      "alias": "level-1-config",
+      "config": {
+        "loa-level": "1",
+        "max-age": "0"
+      }
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "acr",
+      "description": "OpenID Connect scope for add acr to the token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "acr loa level",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-acr-mapper",
+          "consentRequired": false,
+          "config": {
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "defaultDefaultClientScopes": ["openid", "profile", "email", "acr"],
+  "defaultOptionalClientScopes": []
+}
