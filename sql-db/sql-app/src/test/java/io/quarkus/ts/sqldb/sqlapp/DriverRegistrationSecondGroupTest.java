@@ -11,6 +11,7 @@ import org.junit.jupiter.api.condition.OS;
 import io.quarkus.test.common.TestResourceScope;
 import io.quarkus.test.common.WithTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.restassured.response.Response;
 
@@ -18,6 +19,7 @@ import io.restassured.response.Response;
 @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Testcontainers requires a supported container runtime environment")
 @Tag("QUARKUS-47552")
 @QuarkusTest
+@TestProfile(SecondGroupProfile.class)
 @WithTestResource(value = MySQLTestResourceLifecycleManager.class, scope = TestResourceScope.RESTRICTED_TO_CLASS)
 public class DriverRegistrationSecondGroupTest {
 
@@ -32,8 +34,10 @@ public class DriverRegistrationSecondGroupTest {
                 .response();
 
         String drivers = response.asString();
-        assertTrue(drivers.contains("software.amazon.jdbc.Driver"),
-                "AWS JDBC wrapper driver should still be registered in second group");
+        assertTrue(drivers.contains("io.quarkus.ts.sqldb.sqlapp.driver.TestJdbcDriver"),
+                "Custom test driver should still be registered in second group");
+        assertTrue(drivers.contains("com.mysql.cj.jdbc.Driver"),
+                "MySQL driver should still be registered");
     }
 
 }
