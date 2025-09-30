@@ -1,8 +1,14 @@
 package io.quarkus.ts.security.keycloak.oidcclient.extended.restclient;
 
+import static io.restassured.RestAssured.given;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jboss.logging.Logger;
 
 import io.quarkus.test.bootstrap.KeycloakService;
+import io.restassured.response.Response;
 
 final class TokenUtils {
 
@@ -11,6 +17,10 @@ final class TokenUtils {
 
     static final String CLIENT_ID_DEFAULT = "test-application-client";
     static final String CLIENT_SECRET_DEFAULT = "test-application-client-secret";
+
+    static final String TOKEN_ENDPOINT = "/protocol/openid-connect/token";
+    static final String CLIENT_ID = "test-application-client";
+    static final String CLIENT_SECRET = "test-application-client-secret";
 
     private TokenUtils() {
     }
@@ -33,6 +43,28 @@ final class TokenUtils {
             }
             throw e;
         }
+    }
+
+    public static String createToken(KeycloakService keycloak, String username, String password) {
+        Map<String, String> params = new HashMap<>();
+        params.put("grant_type", "password");
+        params.put("client_id", CLIENT_ID);
+        params.put("client_secret", CLIENT_SECRET);
+        params.put("username", username);
+        params.put("password", password);
+        params.put("scope", "openid profile email roles");
+
+        Response response = given()
+                .relaxedHTTPSValidation()
+                .formParams(params)
+                .when()
+                .post(keycloak.getRealmUrl() + TOKEN_ENDPOINT);
+
+        response.then().statusCode(200);
+        String token = response.jsonPath().getString("access_token");
+
+        LOG.info("Token created for user: " + token);
+        return response.jsonPath().getString("access_token");
     }
 
 }
