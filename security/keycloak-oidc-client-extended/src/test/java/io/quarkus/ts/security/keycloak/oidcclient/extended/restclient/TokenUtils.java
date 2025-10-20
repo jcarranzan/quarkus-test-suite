@@ -1,5 +1,9 @@
 package io.quarkus.ts.security.keycloak.oidcclient.extended.restclient;
 
+import static io.restassured.RestAssured.given;
+
+import java.util.Map;
+
 import org.jboss.logging.Logger;
 
 import io.quarkus.test.bootstrap.KeycloakService;
@@ -11,6 +15,8 @@ final class TokenUtils {
 
     static final String CLIENT_ID_DEFAULT = "test-application-client";
     static final String CLIENT_SECRET_DEFAULT = "test-application-client-secret";
+
+    static final String TOKEN_ENDPOINT = "/protocol/openid-connect/token";
 
     private TokenUtils() {
     }
@@ -33,6 +39,30 @@ final class TokenUtils {
             }
             throw e;
         }
+    }
+
+    static String createToken(KeycloakService keycloak, String username, String password) {
+        LOG.infof("Requesting token for user '%s'", username);
+        String token = given()
+                .relaxedHTTPSValidation()
+                .formParams(Map.of(
+                        "grant_type", "password",
+                        "client_id", CLIENT_ID_DEFAULT,
+                        "client_secret", CLIENT_SECRET_DEFAULT,
+                        "username", username,
+                        "password", password))
+                .when()
+                .post(keycloak.getRealmUrl() + TOKEN_ENDPOINT)
+                .then()
+                .statusCode(200)
+                .extract().path("access_token");
+
+        if (token == null || token.isEmpty()) {
+            throw new RuntimeException("Failed to get token for user " + username);
+        }
+
+        LOG.debugf("Token for user '%s' acquired", username);
+        return token;
     }
 
 }
