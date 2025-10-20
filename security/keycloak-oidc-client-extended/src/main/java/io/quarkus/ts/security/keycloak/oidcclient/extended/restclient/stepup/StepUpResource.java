@@ -6,7 +6,6 @@ import jakarta.ws.rs.Path;
 
 import io.quarkus.oidc.AuthenticationContext;
 import io.quarkus.oidc.BearerTokenAuthentication;
-import io.quarkus.security.Authenticated;
 
 @Path("/step-up")
 @BearerTokenAuthentication
@@ -14,16 +13,16 @@ public class StepUpResource {
 
     @GET
     @Path("/no-acr")
-    @Authenticated
-    public String noAcr() {
+    @RolesAllowed("user")
+    public String noAcrRequired() {
         return "No ACR, but authentication required";
     }
 
     @GET
-    @Path("/single-acr-copper")
-    @AuthenticationContext("copper")
-    public String singleAcrCopper() {
-        return "Single ACR copper validated";
+    @Path("/ping")
+    @RolesAllowed("user")
+    public String ping() {
+        return "pong";
     }
 
     @GET
@@ -34,17 +33,24 @@ public class StepUpResource {
     }
 
     @GET
-    @Path("/single-acr-gold")
-    @AuthenticationContext("gold")
-    public String singleAcrGold() {
-        return "Single ACR gold validated";
+    @Path("/single-acr-copper")
+    @AuthenticationContext("copper")
+    public String singleAcrCopper() {
+        return "Single ACR copper validated";
     }
 
     @GET
     @Path("/multiple-acr-copper-silver")
     @AuthenticationContext({ "copper", "silver" })
-    public String multipleAcrCopperSilver() {
-        return "Multiple ACR copper and silver validated";
+    public String multipleAcr() {
+        return "Multiple ACR validated";
+    }
+
+    @GET
+    @Path("/acr-with-max-age")
+    @AuthenticationContext(value = "silver", maxAge = "PT120s")
+    public String acrWithMaxAge() {
+        return "ACR with max age validated";
     }
 
     @GET
