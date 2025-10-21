@@ -1,4 +1,3 @@
-// Archivo: src/main/java/.../StepUpResource.java
 package io.quarkus.ts.security.keycloak.oidcclient.extended.restclient.stepup;
 
 import jakarta.annotation.security.RolesAllowed;
@@ -6,6 +5,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 
 import io.quarkus.oidc.AuthenticationContext;
+import io.quarkus.oidc.AuthorizationCodeFlow;
 import io.quarkus.oidc.BearerTokenAuthentication;
 
 @Path("/step-up")
@@ -16,6 +16,13 @@ public class StepUpResource {
     @Path("/no-acr")
     @RolesAllowed("user")
     public String noAcrRequired() {
+        return "No ACR, but authentication required";
+    }
+
+    @GET
+    @Path("/no-acr-web-app")
+    @AuthorizationCodeFlow
+    public String noAcrRequiredWebApp() {
         return "No ACR, but authentication required";
     }
 
@@ -31,6 +38,22 @@ public class StepUpResource {
     @AuthenticationContext("silver")
     public String singleAcrSilver() {
         return "Single ACR silver validated";
+    }
+
+    @AuthorizationCodeFlow
+    @GET
+    @Path("/single-acr-silver-web-app")
+    @AuthenticationContext("silver")
+    public String singleAcrSilverWebApp() {
+        return "Single ACR silver validated";
+    }
+
+    @AuthorizationCodeFlow
+    @GET
+    @Path("/single-acr-gold-web-app")
+    @AuthenticationContext("gold")
+    public String singleAcrGoldWebApp() {
+        return "Single ACR gold validated";
     }
 
     @GET
