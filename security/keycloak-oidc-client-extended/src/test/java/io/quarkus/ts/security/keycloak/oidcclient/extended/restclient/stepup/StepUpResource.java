@@ -7,6 +7,7 @@ import jakarta.ws.rs.Path;
 import io.quarkus.oidc.AuthenticationContext;
 import io.quarkus.oidc.AuthorizationCodeFlow;
 import io.quarkus.oidc.BearerTokenAuthentication;
+import io.quarkus.oidc.Tenant;
 
 @Path("/step-up")
 @BearerTokenAuthentication
@@ -69,5 +70,33 @@ public class StepUpResource {
     @RolesAllowed("user")
     public String rbacUserRole() {
         return "ACR and user role validated";
+    }
+
+    @GET
+    @Path("/max-age-with-acr")
+    @AuthenticationContext(value = "silver", maxAge = "PT2M")
+    public String maxAgeWithAcr() {
+        return "Max age and ACR silver validated";
+    }
+
+    @GET
+    @Path("/max-age-short")
+    @AuthenticationContext(value = "silver", maxAge = "PT1S")
+    public String maxAgeShort() {
+        return "Max age short with ACR silver validated";
+    }
+
+    @GET
+    @Path("/max-age-long")
+    @AuthenticationContext(value = "silver", maxAge = "PT1H")
+    public String maxAgeLong() {
+        return "Max age long with ACR silver validated";
+    }
+
+    @GET
+    @Path("/custom-validator")
+    @Tenant("custom-validator")
+    public String customValidator() {
+        return "Custom validator enforced gold and platinum ACR";
     }
 }
