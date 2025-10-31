@@ -8,10 +8,9 @@ import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.StreamingOutput;
-
-import org.jboss.resteasy.reactive.RestQuery;
 
 import io.smallrye.common.annotation.Blocking;
 
@@ -25,16 +24,14 @@ public class StreamingOutputErrorResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     @Blocking
-    public StreamingOutput stream(@RestQuery @DefaultValue("false") boolean fail) {
-
+    public StreamingOutput stream(@QueryParam("fail") @DefaultValue("false") boolean fail) {
         return outputStream -> {
-            try (OutputStream out = outputStream) {
-                writeData(out);
+            try {
+                writeData(outputStream);
                 if (fail) {
                     throw new IOException("dummy failure");
                 }
-                writeData(out);
-
+                writeData(outputStream);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

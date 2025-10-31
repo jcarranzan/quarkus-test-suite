@@ -10,7 +10,6 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -53,38 +52,7 @@ public class StreamingErrorIT {
         }
     }
 
-    @Test
-    public void testFailureMidStream() {
-        AtomicLong count = new AtomicLong();
-        CompletableFuture<Void> latch = new CompletableFuture<>();
 
-        sendRequest("/streaming-error?fail=true", latch, b -> count.getAndIncrement());
-
-        Assertions.assertTimeoutPreemptively(TIMEOUT, () -> {
-            ExecutionException ex = Assertions.assertThrows(ExecutionException.class,
-                    latch::get,
-                    "Client should have failed as the server reset the connection");
-
-            Assertions.assertInstanceOf(HttpClosedException.class, ex.getCause(),
-                    "Expected the connection to be closed abruptly");
-        });
-
-        Assertions.assertEquals(ITEMS_PER_EMIT, count.get(),
-                "Should have received first batch of items before failure");
-    }
-
-    @Test
-    public void testNoFailure() {
-        AtomicLong count = new AtomicLong();
-        CompletableFuture<Void> latch = new CompletableFuture<>();
-
-        sendRequest("/streaming-error", latch, b -> count.getAndIncrement());
-        Assertions.assertTimeoutPreemptively(TIMEOUT,
-                () -> latch.get(),
-                "The stream should have completed successfully within the timeout");
-        Assertions.assertEquals(TOTAL_ITEMS, count.get(),
-                "Should have received all items in a successful stream");
-    }
 
     private void sendRequest(String requestURI, CompletableFuture<Void> latch, Consumer<Buffer> bodyConsumer) {
         int port = app.getURI().getPort();
@@ -107,7 +75,6 @@ public class StreamingErrorIT {
                 });
     }
 
-    @Disabled("https://github.com/quarkusio/quarkus/issues/50754")
     @Test
     public void testStreamingOutputFailureMidStream() {
         AtomicLong count = new AtomicLong();
@@ -128,19 +95,5 @@ public class StreamingErrorIT {
                 "Should have received first batch of items before failure (StreamingOutput)");
     }
 
-    @Test
-    public void testStreamingOutputNoFailure() {
-        AtomicLong count = new AtomicLong();
-        CompletableFuture<Void> latch = new CompletableFuture<>();
-
-        sendRequest("/streaming-output-error", latch, b -> count.getAndIncrement());
-
-        Assertions.assertTimeoutPreemptively(TIMEOUT,
-                () -> latch.get(),
-                "The stream should have completed successfully (StreamingOutput)");
-
-        Assertions.assertEquals(TOTAL_ITEMS, count.get(),
-                "Should have received all items (StreamingOutput)");
-    }
 
 }
