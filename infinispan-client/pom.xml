@@ -23,10 +23,12 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-infinispan-client</artifactId>
         </dependency>
+        <!-- Commented out due to missing version - not needed for transactional tests
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-query-dsl</artifactId>
         </dependency>
+        -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-health</artifactId>
