@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpStatus;
@@ -22,6 +23,7 @@ import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
 import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.utils.AwaitilityUtils;
+import io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
 import io.quarkus.test.utils.Command;
 import io.restassured.response.Response;
 
@@ -359,7 +361,8 @@ public class OperatorOpenShiftInfinispanCountersIT extends BaseOpenShiftInfinisp
      */
     private void restart(RestService one) {
         one.stop();
-        AwaitilityUtils.untilIsTrue(() -> ocClient.podsInService(one).isEmpty());
+        AwaitilityUtils.untilIsTrue(() -> ocClient.podsInService(one).isEmpty(),
+                AwaitilitySettings.usingTimeout(Duration.ofMinutes(2)));
         one.start();
         waitForAppToBeUpAndRunning(one);
     }
