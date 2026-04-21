@@ -39,8 +39,14 @@ public class InfinispanCounterResource {
     @Produces(MediaType.TEXT_PLAIN)
     public String incCounters() {
         int invocationClientNumber = counter.incrementAndGet();
-        int invocationCacheNumber = cache.get("counter") + 1;
-        cache.put("counter", invocationCacheNumber);
+        int invocationCacheNumber;
+        while (true) {
+            Integer current = cache.get("counter");
+            invocationCacheNumber = (current == null ? 0 : current) + 1;
+            if (cache.replace("counter", current, invocationCacheNumber)) {
+                break;
+            }
+        }
         return "Cache=" + invocationCacheNumber + " Client=" + invocationClientNumber;
     }
 

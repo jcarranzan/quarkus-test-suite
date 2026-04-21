@@ -358,7 +358,9 @@ public class OperatorOpenShiftInfinispanCountersIT extends BaseOpenShiftInfinisp
      * Restart node.
      */
     private void restart(RestService one) {
-        one.restart();
+        one.stop();
+        AwaitilityUtils.untilIsTrue(() -> ocClient.podsInService(one).isEmpty());
+        one.start();
         waitForAppToBeUpAndRunning(one);
     }
 
