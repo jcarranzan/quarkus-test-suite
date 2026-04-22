@@ -14,6 +14,7 @@ import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,24 @@ public class OperatorOpenShiftInfinispanCountersIT extends BaseOpenShiftInfinisp
 
     @QuarkusApplication
     static RestService two = new RestService();
+
+    /**
+     * S2I builds may create a DeploymentConfig alongside the Deployment created by the Quarkus
+     * OpenShift extension, resulting in 2 pods per service. Scale down DCs so only Deployment
+     * pods are active, ensuring consistent client counters (AtomicInteger is per-JVM).
+     * Workaround for quarkus-qe/quarkus-test-framework#1033. Remove when TF fix is released.
+     */
+    @BeforeAll
+    static void scaleDownDeploymentConfigs() {
+        String ns = ocClient.project();
+        for (String name : new String[] { "one", "two" }) {
+            try {
+                new Command("oc", "scale", "dc/" + name, "--replicas=0", "-n", ns).runAndWait();
+            } catch (Exception e) {
+                LOG.debug("DC " + name + " not found, skipping: " + e.getMessage());
+            }
+        }
+    }
 
     /**
      * Simple check of connection to endpoints
