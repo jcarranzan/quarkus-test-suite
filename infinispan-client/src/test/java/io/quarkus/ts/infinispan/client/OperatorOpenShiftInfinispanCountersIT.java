@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
+import org.jboss.logging.Logger;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -30,6 +31,8 @@ import io.restassured.response.Response;
 @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingOpenShiftExtension)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class OperatorOpenShiftInfinispanCountersIT extends BaseOpenShiftInfinispanIT {
+
+    private static final Logger LOG = Logger.getLogger(OperatorOpenShiftInfinispanCountersIT.class);
 
     @QuarkusApplication
     static RestService one = new RestService();
@@ -108,10 +111,11 @@ public class OperatorOpenShiftInfinispanCountersIT extends BaseOpenShiftInfinisp
         incrementCountersOnValue(one, "/first-counter/increment-counters", 10);
 
         // kill the app = fail of the client
-        one.stop();
+        scaleDownApp(one);
 
         // wait for app to actually be down
-        AwaitilityUtils.untilIsTrue(() -> ocClient.podsInService(one).isEmpty());
+        AwaitilityUtils.untilIsTrue(() -> ocClient.podsInService(one).isEmpty(),
+                AwaitilitySettings.usingTimeout(Duration.ofMinutes(2)));
 
         // try to invoke the cache
         one.given()
@@ -120,7 +124,8 @@ public class OperatorOpenShiftInfinispanCountersIT extends BaseOpenShiftInfinisp
                 .statusCode(Matchers.allOf(Matchers.greaterThanOrEqualTo(500), Matchers.lessThan(600)));
 
         // turn-on the app
-        one.start();
+        scaleUpApp(one);
+        waitForAppToBeUpAndRunning(one);
 
         String cacheCounter = getCounterValue(one, "/first-counter/get-cache");
         String clientCounter = getCounterValue(one, "/first-counter/get-client");
@@ -357,14 +362,53 @@ public class OperatorOpenShiftInfinispanCountersIT extends BaseOpenShiftInfinisp
     }
 
     /**
-     * Restart node.
+     * Restart node by scaling the DeploymentConfig directly.
+     * Workaround for TF scaleTo() targeting Deployment instead of DeploymentConfig (TF PR #1033).
      */
     private void restart(RestService one) {
-        one.stop();
+        scaleDownApp(one);
         AwaitilityUtils.untilIsTrue(() -> ocClient.podsInService(one).isEmpty(),
                 AwaitilitySettings.usingTimeout(Duration.ofMinutes(2)));
-        one.start();
+        scaleUpApp(one);
         waitForAppToBeUpAndRunning(one);
+    }
+
+    /**
+     * Workaround for TF scaleTo() targeting Deployment only, not DeploymentConfig (TF PR #1033).
+     * Remove when TF fix is released.
+     */
+    private void scaleDownApp(RestService service) {
+        String name = service.getName();
+        String ns = ocClient.project();
+        try {
+            new Command("oc", "scale", "dc/" + name, "--replicas=0", "-n", ns).runAndWait();
+        } catch (Exception e) {
+            LOG.debug("DC " + name + " not found, skipping scale-down: " + e.getMessage());
+        }
+        try {
+            new Command("oc", "scale", "deployment/" + name, "--replicas=0", "-n", ns).runAndWait();
+        } catch (Exception e) {
+            LOG.debug("Deployment " + name + " not found, skipping scale-down: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Workaround for TF scaleTo() targeting Deployment only, not DeploymentConfig (TF PR #1033).
+     * Remove when TF fix is released.
+     */
+    private void scaleUpApp(RestService service) {
+        String name = service.getName();
+        String ns = ocClient.project();
+        try {
+            new Command("oc", "scale", "dc/" + name, "--replicas=1", "-n", ns).runAndWait();
+        } catch (Exception e) {
+            LOG.debug("DC " + name + " not found, skipping scale-up: " + e.getMessage());
+        }
+        try {
+            new Command("oc", "scale", "deployment/" + name, "--replicas=1", "-n", ns).runAndWait();
+        } catch (Exception e) {
+            LOG.debug("Deployment " + name + " not found, skipping scale-up: " + e.getMessage());
+        }
     }
 
     /**
