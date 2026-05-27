@@ -69,4 +69,22 @@ public class ClientService {
             throw new RuntimeException("Database operation failed", e);
         }
     }
+
+    @Transactional(Transactional.TxType.REQUIRED)
+    public void updateAccountWithPrepareBeforeTimeout(String newName, String accountNumber) {
+        try (var connection = agroalDataSource.getConnection()) {
+            String sql = "UPDATE client SET name = ? WHERE account_number = ?";
+            try (var statement = connection.prepareStatement(sql)) {
+                statement.setString(1, newName);
+                statement.setString(2, accountNumber);
+                Thread.sleep(5000);
+                statement.execute();
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Database operation failed", e);
+        }
+    }
 }
