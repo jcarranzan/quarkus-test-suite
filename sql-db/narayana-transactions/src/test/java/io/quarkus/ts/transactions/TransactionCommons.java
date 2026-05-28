@@ -324,6 +324,22 @@ public abstract class TransactionCommons {
                 .body(containsString(ACCOUNT_NUMBER_FRANCISCO), containsString("Francisco"));
     }
 
+    @Tag("QUARKUS-7365")
+    @Order(12)
+    @Test
+    public void testNoDataLeakWhenReaperFiresDuringPreparedStatement() {
+        getApp().given()
+                .param("name", "LEAKED")
+                .contentType(ContentType.JSON)
+                .patch("/client/update-with-prepare-before-timeout/" + ACCOUNT_NUMBER_FRANCISCO)
+                .then()
+                .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+
+        var response = getClient(ACCOUNT_NUMBER_FRANCISCO);
+        response.then().statusCode(HttpStatus.SC_OK)
+                .body(containsString(ACCOUNT_NUMBER_FRANCISCO), containsString("Francisco"));
+    }
+
     protected void testTransactionRecoveryInternal() {
         // test transactions without crash so that we check that on normal circumstances, there are no issues
         makeTransaction(false, false);

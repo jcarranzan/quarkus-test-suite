@@ -67,6 +67,17 @@ public class ClientResource {
         return Response.ok("Client updated").status(200).build();
     }
 
+    @PATCH
+    @Path("/update-with-prepare-before-timeout/{account_number}")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Transactional(Transactional.TxType.REQUIRES_NEW)
+    @TransactionConfiguration(timeout = 3)
+    public Response updateClientWithPrepareBeforeTimeout(@PathParam("account_number") String accountNumber,
+            @QueryParam("name") String newName) {
+        clientService.updateAccountWithPrepareBeforeTimeout(newName, accountNumber);
+        return Response.ok("Client updated").status(200).build();
+    }
+
     @Path("/all")
     @GET
     public List<ClientEntity> getAccounts() {
