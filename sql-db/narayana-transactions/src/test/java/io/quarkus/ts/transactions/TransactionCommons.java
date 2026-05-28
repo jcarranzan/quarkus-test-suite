@@ -15,9 +15,13 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
@@ -324,16 +328,28 @@ public abstract class TransactionCommons {
                 .body(containsString(ACCOUNT_NUMBER_FRANCISCO), containsString("Francisco"));
     }
 
-    @Tag("QUARKUS-7365")
     @Order(12)
     @Test
-    public void testNoDataLeakWhenReaperFiresDuringPreparedStatement() {
-        getApp().given()
-                .param("name", "LEAKED")
-                .contentType(ContentType.JSON)
-                .patch("/client/update-with-prepare-before-timeout/" + ACCOUNT_NUMBER_FRANCISCO)
-                .then()
-                .statusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+    @Tag("QUARKUS-7365")
+    public void testNoDataLeakWhenReaperFiresDuringTransaction() throws Exception {
+        int concurrency = 2;
+        int iterations = 100;
+        ExecutorService executor = Executors.newFixedThreadPool(concurrency);
+        try {
+            for (int i = 0; i < iterations; i++) {
+                List<Future<?>> futures = IntStream.range(0, concurrency)
+                        .mapToObj(j -> executor.submit(() -> getApp().given()
+                                .param("name", "LEAKED")
+                                .contentType(ContentType.JSON)
+                                .patch("/client/update-near-timeout/" + ACCOUNT_NUMBER_FRANCISCO)))
+                        .collect(Collectors.toList());
+                for (Future<?> future : futures) {
+                    future.get();
+                }
+            }
+        } finally {
+            executor.shutdown();
+        }
 
         var response = getClient(ACCOUNT_NUMBER_FRANCISCO);
         response.then().statusCode(HttpStatus.SC_OK)

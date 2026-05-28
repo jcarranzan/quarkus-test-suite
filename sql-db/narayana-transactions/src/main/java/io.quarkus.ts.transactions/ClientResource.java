@@ -68,14 +68,16 @@ public class ClientResource {
     }
 
     @PATCH
-    @Path("/update-with-prepare-before-timeout/{account_number}")
+    @Path("/update-near-timeout/{account_number}")
     @Produces(MediaType.TEXT_PLAIN)
     @Transactional(Transactional.TxType.REQUIRES_NEW)
-    @TransactionConfiguration(timeout = 3)
-    public Response updateClientWithPrepareBeforeTimeout(@PathParam("account_number") String accountNumber,
-            @QueryParam("name") String newName) {
-        clientService.updateAccountWithPrepareBeforeTimeout(newName, accountNumber);
-        return Response.ok("Client updated").status(200).build();
+    @TransactionConfiguration(timeout = 1)
+    public Response updateNearTimeout(@PathParam("account_number") String accountNumber,
+            @QueryParam("name") String newName) throws InterruptedException {
+        // Sleep just under the 1s timeout so the reaper may fire during the subsequent JDBC operation
+        Thread.sleep(999);
+        clientService.updateAccountManually(newName, accountNumber);
+        throw new RuntimeException("Simulated rollback to verify XA data integrity");
     }
 
     @Path("/all")

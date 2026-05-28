@@ -69,25 +69,4 @@ public class ClientService {
             throw new RuntimeException("Database operation failed", e);
         }
     }
-
-    @Transactional(Transactional.TxType.REQUIRED)
-    public void updateAccountWithPrepareBeforeTimeout(String newName, String accountNumber) {
-        try (var connection = agroalDataSource.getConnection()) {
-            String sql = "UPDATE client SET name = ? WHERE account_number = ?";
-            try (var statement = connection.prepareStatement(sql)) {
-                statement.setString(1, newName);
-                statement.setString(2, accountNumber);
-                // Sleep between prepareStatement and execute so the 3s transaction timeout fires
-                // while the connection is already enlisted and a prepared statement exists (AG-304 scenario)
-                Thread.sleep(5000);
-
-                statement.execute();
-            }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
-        } catch (Exception e) {
-            throw new RuntimeException("Database operation failed", e);
-        }
-    }
 }
