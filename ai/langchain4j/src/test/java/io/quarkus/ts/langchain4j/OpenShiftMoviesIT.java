@@ -6,7 +6,7 @@ import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
 import io.quarkus.test.scenarios.OpenShiftScenario;
 
 @DisabledIfSystemProperty(named = "ts.ibm-z-p.missing.services.excludes", matches = "true", disabledReason = "pgvector container not available on s390x & ppc64le.")
-@OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.Build)
+@OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingContainerRegistry)
 public class OpenShiftMoviesIT extends MoviesIT {
 
 }
