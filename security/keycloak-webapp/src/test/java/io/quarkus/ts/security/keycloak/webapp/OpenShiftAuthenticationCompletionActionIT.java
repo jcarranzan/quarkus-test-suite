@@ -22,7 +22,8 @@ public class OpenShiftAuthenticationCompletionActionIT extends BaseAuthenticatio
     static KeycloakService keycloak = new KeycloakService(DEFAULT_REALM_FILE, DEFAULT_REALM, DEFAULT_REALM_BASE_PATH);
 
     @Container(image = "${postgresql.latest.image}", port = 5432, expectedLog = "listening on IPv4 address")
-    static final PostgresqlService database = new PostgresqlService();
+    static final PostgresqlService database = new PostgresqlService()
+            .withProperty("PGDATA", "/tmp/psql");
 
     @QuarkusApplication
     static RestService app = new RestService()
@@ -31,7 +32,7 @@ public class OpenShiftAuthenticationCompletionActionIT extends BaseAuthenticatio
             .withProperty("quarkus.datasource.db-kind", "postgresql")
             .withProperty("quarkus.datasource.username", database.getUser())
             .withProperty("quarkus.datasource.password", database.getPassword())
-            .withProperty("quarkus.datasource.jdbc.url", () -> database.getJdbcUrl())
+            .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl)
             .withProperty("quarkus.http.auth.permission.manage.paths", "/auth-completion/*")
             .withProperty("quarkus.http.auth.permission.manage.policy", "permit");
 
